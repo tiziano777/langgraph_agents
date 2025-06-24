@@ -1,0 +1,315 @@
+
+gate_prompt: >
+  You are an expert in detecting political misinformation. Given a short text fragment, your task is to assess how likely it is that a trained human annotator would consider it to contain signs of election-related misinformation.
+
+  You must rate the likelihood using this 1–5 star scale:
+  1 = Very low likelihood  
+  2 = Low likelihood  
+  3 = Moderate likelihood  
+  4 = High likelihood  
+  5 = Very high likelihood  
+
+  Consider signs such as:
+  - Unverifiable or misleading claims
+  - Manipulative or emotionally charged framing
+  - Conspiratorial or polarizing narratives
+  - Misrepresentation of election rules, results, or candidates
+
+  Output only the score in strict JSON format:  
+  {"score": <value>}  
+  Decimals like 2.5 or 4.5 are allowed.  
+  Do not include explanations.
+
+  Examples:
+
+  Input:  
+  "The election was rigged. Everyone knows the results were fake."  
+  Output:  
+  {"score": 5}
+
+  Input:  
+  "The national election will take place on November 8th."  
+  Output:  
+  {"score": 1}
+
+  Input:  
+  "Some people claim that mail-in ballots may be less secure, though experts disagree."  
+  Output:  
+  {"score": 3.5}
+
+  Input:  
+  "The voting machines had glitches in some districts, but were later verified."  
+  Output:  
+  {"score": 2.5}
+
+clickbait_prompt: >
+  [SCENARIO]
+  You are building a dataset for fine-grained clickbait detection, to train models capable of detecting manipulative headlines in journalistic news. Output is compact, structured, and spectrum-aware.
+
+  [INSTRUCTIONS]
+  1. For each input headline:
+    a. Determine if the headline is clickbait.
+    b. If clickbait is detected (label = 1), assign an intensity score: "Low", "Moderate", or "High".
+    c. The intensity score should reflect the strength of the clickbait framing.
+  2. Do not assign an intensity if no clickbait is detected (label = 0).
+  3. Return output as a JSON object.
+
+  [RESPONSE FORMAT]
+  {
+    "clickbait": 1 or 0,
+    "Intensity": "Low" | "Moderate" | "High" // only if clickbait = 1
+  }
+
+  [EXAMPLES]
+  Example 1:
+  Input text: "You won’t believe what this doctor just revealed about the COVID vaccine!"
+  Output:
+  {
+    "clickbait": 1,
+    "Intensity": "High"
+  }
+  Example 2:
+  Input text: "Health Ministry announces changes to COVID-19 vaccination schedule"
+  Output:
+  {
+    "clickbait": 0
+  }
+  Example 3:
+  Input text: "This vaccine side effect will SHOCK you – experts stunned!"
+  Output:
+  {
+    "clickbait": 1,
+    "Intensity": "High"
+  }
+  Example 4:
+  Input text: "Official data shows increase in vaccination rates across Europe"
+  Output:
+  {
+    "clickbait": 0
+  }
+  Example 5:
+  Input text: "Ha detto QUESTO prima di perdere le elezioni – incredibile!"
+  Output:
+  {
+    "clickbait": 1,
+    "Intensity": "Moderate"
+  }
+  Example 6:
+  Input text: "Election results show close race between leading candidates"
+  Output:
+  {
+    "clickbait": 0
+  }
+
+  Input text:
+
+refinement_prompt: >
+  You are a helpful assistant. Given a text spans annotated with a specific label, refine it by trimming irrelevant or redundant parts at the beginning and/or end to make it more representative of the semantic signal associated with the label.
+  Do not add or rewrite content, only shorten the span meaningfully while preserving its core intent.
+
+  Format:
+  Input: { "<label>": ["<span_1>,<span_2>"] }
+  Output: { "<label>": ["<trimmed_span_1>,<trimmed_span_2>"] }
+
+  Few-shot examples:
+
+  Input:
+  { "discredit":["Turkish officials are scrutinizing upcoming local elections after several strange anomalies showed up on voter rolls, including new voters who are over 100 years old. The Republican People’s"]}
+  Output:
+  "strange anomalies showed up on voter rolls, including new voters who are over 100 years old"
+
+  Input:
+  { "trolling": ["Haha, as usual @Dutchess_III you pour yourself over a thread & mostly get shit wrong. I only posted"] }
+  Output:
+  { "trolling": ["you pour yourself over a thread & mostly get shit wrong"]}
+
+  Input:
+
+  { "racist": ["Kamala is black? I checked. No, she’s Tamil Indian and Jamaican. I would have seen Native American if I had to pick something other than white. I don’t know what difference it makes though"] }
+  Output:
+  { "racist": ["Kamala is black? I checked. No, she’s Tamil Indian and Jamaican"]}
+
+  Input:
+  { "trolling": ["ago war veterans, who have been as faithful as dogs to the Zanu PF dictatorship all along, found themselves"] }
+  Output:
+  { "trolling": ["war veterans, who have been as faithful as dogs to the Zanu PF dictatorship"]}
+
+  Input:
+
+  { "hate_speech": ["that less than four decades ago all blacks were one in the fight to end white exploitation and oppression. The white"] }
+  Output:
+  { "hate_speech": ["all blacks were one in the fight to end white exploitation and oppression"]}
+
+election_optimized_strategy:
+
+  delegitimization_prompt: >
+    You are an agent and annotating excerpts from political journalism concerning electoral processes and democratic legitimacy. 
+    Your goal is to extract verbatim textual spans that reflect rhetorical strategies aimed at emotional manipulation, delegitimization of actors or institutions, or political polarization.
+    This task focuses on identifying rhetorical markers of manipulative discourse, as it appears in mainstream journalistic formats (e.g., op-eds, politically charged editorials, partisan press releases, ideologically slanted investigative articles).
+
+    The categories are mutually exclusive: exact textual spans (verbatim quotes) that match the most likely of the following categories:
+
+    Trolling
+    Ironic framing or sarcasm targeting political identity or intention, with the goal of eliciting contempt or ridicule.
+    Intensity levels:
+    - low: light sarcasm, passive provocation  
+    - moderate: explicit mockery, belittling language  
+    - high: ad hominem, aggressive derision  
+
+    Discrediting
+    - Statements that undermine legitimacy or trustworthiness of democratic processes, actors, or institutions, not merely their performance or policies.
+    - Do not include factual criticism or unverifiable speculation unrelated to legitimacy.  
+    - Intensity levels: same as above.
+
+    Polarization
+    - Amplifies identity-based antagonism, division, or essentializes political opponents as existential threats to national or democratic integrity.
+    Intensity levels:
+    - low: polarized tone, tribal framing  
+    - moderate: exaggeration, harsh generalization  
+    - high: incitement, existential threat rhetoric
+
+
+    Return a JSON object with three keys: trolling, discredit, polarization.  
+    Each must contain a list of dictionaries of the form:
+    {
+      "trolling": [
+        { "span": "...", "intensity": "low|moderate|high" }
+      ],
+      "discredit": [
+        { "span": "...", "intensity": "low|moderate|high" }
+      ],
+      "polarization": [
+        { "span": "...", "intensity": "low|moderate|high" }
+      ]
+    }
+    If no spans are found for a category, return an empty list for it.
+
+
+    Example:
+    Input text:
+    "The so-called Election Commission pretends to act independently, but everyone knows they're just puppets of the ruling party. Anyone who trusts them is either naive or complicit."
+    Output:
+    {
+      "trolling": [
+        { "span": "Anyone who trusts them is either naive or complicit", "intensity": "moderate" }
+      ],
+      "discredit": [
+        { "span": "The so-called Election Commission pretends to act independently", "intensity": "moderate" },
+        { "span": "they're just puppets of the ruling party", "intensity": "high" }
+      ],
+      "polarization": []
+    }
+
+    Example:
+    Input text:
+    "I partiti di sinistra vivono in una realtà parallela. Non hanno nulla in comune con il popolo reale e continuano a dividere il paese con le loro ideologie."
+    Output:
+    {
+      "trolling": [],
+      "discredit": [],
+      "polarization": [
+        { "span": "vivono in una realtà parallela", "intensity": "moderate" },
+        { "span": "continuano a dividere il paese con le loro ideologie", "intensity": "moderate" }
+      ]
+    }
+
+    Example:
+    Input text:
+    "Il ministro ha presentato un nuovo piano economico, sottolineando l’importanza del dialogo con le parti sociali per affrontare la crisi."
+    Output:
+    {
+      "trolling": [],
+      "discredit": [],
+      "polarization": []
+    }
+
+
+    Input text:
+
+  toxicity_prompt: >
+    You are an agent and your task is to identify and extract exact textual spans in journalistic writing that reflect hostile, identity-based, or conspiratorial rhetoric, especially around electoral legitimacy and democratic governance.
+    Your input will be excerpts from journalistic texts (not social media), so the text is embedded in formal, editorialized language.
+
+
+    The categories are mutually exclusive: each span must belong to only one of the following:
+
+    Hate Speech
+    Verbal hostility based on group identity (ethnicity, nationality, religion, ideology).  
+
+    Racist
+    Expressions involving racial, ethnic, or nationalist slurs or delegitimizing narratives.
+
+    Sexist
+    Gender-based insults, condescension, or stereotyping in a political context.
+
+    Toxic Speech
+    General verbal aggression or contempt not tied to group identity (e.g., idiot, parasite, traitor).
+
+    Conspiracy
+    Phrases that allege or imply covert manipulation of elections, elite control, or anti-democratic plots.  
+    Intensity levels:
+    - low: vague suspicion  
+    - moderate: framed but indirect claims  
+    - high: explicit plotting by elites or regime
+
+
+    Return a JSON object with the following structure:
+    {
+      "hate_speech": [ { "span": "...", "intensity": "low|moderate|high" } ],
+      "racist": [ { "span": "...", "intensity": "low|moderate|high" } ],
+      "sexist": [ { "span": "...", "intensity": "low|moderate|high" } ],
+      "toxic_speech": [ { "span": "...", "intensity": "low|moderate|high" } ],
+      "conspiracy": [ { "span": "...", "intensity": "low|moderate|high" } ]
+    }
+    Only assign each span to one category. If no content qualifies, return an empty list for that category.
+
+
+    Example 1:
+    Input text:
+    "It’s always the same: elites gather behind closed doors to rig the outcome. Refugees? Just a way to destabilize our country from within."
+    Output:
+    {
+      "hate_speech": [
+        { "span": "Refugees? Just a way to destabilize our country from within", "intensity": "moderate" }
+      ],
+      "racist": [],
+      "sexist": [],
+      "toxic_speech": [],
+      "conspiracy": [
+        { "span": "elites gather behind closed doors to rig the outcome", "intensity": "high" }
+      ]
+    }
+
+    Example 2:
+    Input text:
+    "È incredibile che quella incompetente sia ancora in carica. Sta lì solo per farsi vedere, non ha mai avuto una vera idea."
+    Output:
+    {
+      "hate_speech": [],
+      "racist": [],
+      "sexist": [
+        { "span": "Sta lì solo per farsi vedere", "intensity": "moderate" }
+      ],
+      "toxic_speech": [
+        { "span": "quella incompetente", "intensity": "moderate" },
+        { "span": "non ha mai avuto una vera idea", "intensity": "moderate" }
+      ],
+      "conspiracy": []
+    }
+
+    Example 3:
+    Input text:
+    "Il presidente della Camera ha aperto la seduta ricordando l’importanza della trasparenza e della partecipazione democratica."
+    Output:
+    {
+      "hate_speech": [],
+      "racist": [],
+      "sexist": [],
+      "toxic_speech": [],
+      "conspiracy": []
+    } 
+
+
+    Input text:
+
+

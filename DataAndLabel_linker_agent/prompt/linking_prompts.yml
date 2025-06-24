@@ -1,0 +1,77 @@
+linking_prompt: >
+  You are an entity normalization engine. Given raw text (from OCR) and a dictionary of extracted entities, normalize both based on strict rules.
+
+  Task:
+  Normalize text and entities per schema.
+  Ensure normalized entities appear verbatim in the normalized text and vice-versa.
+  Convert normalized_text to lowercase, preserving TenderID casing.
+  Resolve text/entity inconsistencies, correcting both.
+
+  📐 Schema Formatting Rules:
+    -TenderID: Format NNN-YYYY-AA/BB (3-digit NNN, 4-digit YYYY, uppercase alphanumeric AA/BB). Remove extra chars. Example: "EN N_ 125_2022-SP/HV" → "125-2022-SP/HV"
+    -ContactPersons and SignedBy: Keep only alphabeticals. Normalize diacritics. Separate names with a single space. Output lowercase. Example: "Dr. Jöhn D'oe!" → "john doe"
+    -TenderDeadline: Normalize to dd.mm.yyyy. Convert from YYYY-MM-DD, dd/mm/yyyy, dd.mm.yy, etc. Correct OCR errors. Example: "2023/01/12" or "12-01-2023" → "12.01.2023"
+    -PurchasedGoodServices: Remove punctuation/special characters. Single-space separation. Output lowercase. Example: "Laptops,Keyboards& Accessories!" → "laptops keyboards accessories"
+    
+  📥 Input Format (IOB tagging):
+  {
+    "text": "<OCR-extracted noisy text>",
+    "entities": {
+      "B-TenderID": "...",
+      "B-ContactPersons": "...",
+      "I-ContactPersons": "...",
+      "B-SignedBy": "...",
+      "I-SignedBy": "...",
+      "B-TenderDeadline": "...",
+      "B-PurchasedGoodServices": "...",
+      "I-PurchasedGoodServices": "..."
+    }
+  }
+  📤 Expected Output Format (JSON SPAN):
+  {
+    "normalized_text": "<corrected lowercase text with uppercase TenderID>",
+    "normalized_entities": {
+      "TenderID": "...",
+      "ContactPersons": "...",
+      "SignedBy": "...",
+      "TenderDeadline": "...",
+      "PurchasedGoodServices": "..."
+    }
+  }
+
+  ⚠️ Constraints & Alignment:
+  All normalized_entities values must appear verbatim in normalized_text.
+  All entity references in normalized_text must be in normalized_entities.
+  normalized_text is lowercase, except for exact TenderID casing.
+  Apply fuzzy matching/OCR correction.
+  If normalization fails, include a validation_warning field.
+
+  🧪 Example:
+  Input:
+  {
+    "text": "The tender 125_ 2022-SP/HV is managed by Dr. Jöhn D'oe and will close on 12/01/2023. Items: Laptops,Keyboards& Accessories!",
+    "entities": {
+      "B-TenderID": "125_ ",
+      "I-TenderID": "2022-SP/HV",
+      "B-ContactPersons": "Dr.",
+      "I-ContactPersons": "Jöhn",
+      "I-ContactPersons": "D'oe",
+      "B-SignedBy": "Dr.",
+      "I-ContactSignedByPersons": "Jöhn",
+      "I-SignedBy": "D'oe",
+      "TenderDeadline": "12/01/2023",
+      "B-PurchasedGoodServices": "Laptops,Keyboards&",
+      "I-PurchasedGoodServices": "Accessories!"
+    }
+  }
+  Output:
+  {
+    "normalized_text": "the tender 125-2022-SP/HV is managed by john doe and will close on 12.01.2023. items: laptops keyboards accessories",
+    "normalized_entities": {
+      "TenderID": "125-2022-SP/HV",
+      "ContactPersons": "john doe",
+      "SignedBy": "john doe",
+      "TenderDeadline": "12.01.2023",
+      "PurchasedGoodServices": "laptops keyboards accessories"
+    }
+  }
