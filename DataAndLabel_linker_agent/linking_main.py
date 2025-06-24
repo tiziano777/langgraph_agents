@@ -12,13 +12,15 @@ from pipelines.api_linking_pipeline import run_pipeline
 # CONFIG
 TOPIC = "linking"
 LANG="sl"
-DATA_PATH = f'./data/raw/{TOPIC}_data.jsonl'
-LABELS_PATH = f'./data/raw/labels/'
+
+DATA_PATH = f'./data/input/{TOPIC}_data.jsonl'
+LABELS_PATH = f'./data/input/labels/'
 
 OUTPUT_PATH = f'./data/output/{TOPIC}_dataset.jsonl'
 CHECKPOINT_PATH = f'./data/checkpoint/{TOPIC}_checkpoint.json'
 
-PROMPTS_PATH = './config/linking_prompts.yml'
+PROMPTS_PATH = './prompt/linking_prompts.yml'
+
 MODEL_CONFIG = "./config/gemini2.0-flash.yml"
 
 def main():

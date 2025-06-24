@@ -16,15 +16,15 @@ llm_config["api_key"] = api_key
 '''
 
 
-PROMPT_PATH= "/home/tiziano/AutoAnnotator/src/config/ner_prompts.yml"
+PROMPT_PATH= "/home/tiziano/langgraph_agents/NER_annotator_agent/prompt/ner_prompts.yml"
 
 choiches=["SL_NER_PROMPT","IT_NER_PROMPT","UK_NER_PROMPT"]
 
 with open(PROMPT_PATH, "r", encoding="utf-8") as f:
     prompts = yaml.safe_load(f)
     
-input_path="/home/tiziano/AutoAnnotator/data/raw/slovenian_corpus.json"
-output_path="/home/tiziano/AutoAnnotator/data/outputs/sl_ner_dataset.jsonl"
+input_path="/home/tiziano/AutoAnnotator/data/input/slovenian_corpus.json"
+output_path="/home/tiziano/AutoAnnotator/data/output/sl_ner_dataset.jsonl"
 checkpoint_path="/home/tiziano/AutoAnnotator/data/checkpoint/sl_ner_checkpoint.json"
 
 prompt=prompts[choiches[0]] # Slovene system prompt

@@ -8,11 +8,10 @@ from langgraph.graph import StateGraph, START, END
 
 from states.linking_state import State
 
-from nodes.linking.linking_apiAnnotator import Annotator
-from nodes.linking.linking_OutputCorrection import OutputCorrection
-from nodes.linking.linking_SpanFormat import SpanFormat
-from nodes.linking.linking_StreamWriter import StreamWriter
-
+from nodes.linking_apiAnnotator import Annotator
+from nodes.linking_OutputCorrection import OutputCorrection
+from nodes.linking_SpanFormat import SpanFormat
+from nodes.linking_StreamWriter import StreamWriter
 
 
 
@@ -31,7 +30,6 @@ def create_pipeline(annotator, output_correction, span_format, writer):
     workflow.add_edge("span_node", "writer_node")
     workflow.add_edge("writer_node", END)
     return workflow.compile()
-
 
 def run_pipeline(data_path, label_path, output_path, checkpoint_path, lang, llm_config, prompts):
     
