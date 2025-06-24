@@ -1,4 +1,4 @@
-config/gemini2.0-flash.yml
+.env
 data/
 log/
 nodes/__pycache__/

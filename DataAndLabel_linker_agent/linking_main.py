@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 import json
 import yaml
 import traceback
@@ -28,8 +29,12 @@ def main():
     # Carica la configurazione del modello
     with open(MODEL_CONFIG, "r", encoding="utf-8") as f:
         llm_config = yaml.safe_load(f)
-
     
+    #Load api key from environment variables
+    load_dotenv()
+    api_key = os.environ.get("api_key")
+    llm_config["api_key"] = api_key
+
 
     # Crea file se non esistono
     if not os.path.exists(OUTPUT_PATH):
