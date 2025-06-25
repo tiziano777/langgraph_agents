@@ -1,6 +1,7 @@
 import json
 import re
 import traceback
+from typing import List, Dict, Any
 
 from json_repair import repair_json
 from states.disinfo_state import State
@@ -70,14 +71,14 @@ class SpanRefiner:
                 refined_signals.append(signals_segment)
         
         self.logger(total_input_tokens, total_output_tokens)
-        
+
         state.segmented_signals = refined_signals
         state.input_tokens += total_input_tokens
         state.output_tokens += total_output_tokens
         
         # Imposta refined_once a True dopo il primo passaggio di raffinamento
         state.refined_once = True 
-
+        print(state)
         return state
 
     def extract_json(self, json_text: str) -> dict:
@@ -105,5 +106,8 @@ class SpanRefiner:
             step = 2
         else:
             step = 1
+        ### END CUSTOM LOGIC ###
+        
         #print(f'INPUT SpanRefiner & OUTPUT di OutputCorrection step {step} : ', state.segmented_signals)
+        
         return self.refine_spans(state)

@@ -24,7 +24,7 @@ class SpanFormat:
                                 "start": match.start(),
                                 "end": match.end()
                             })
-                    
-            state.span_signals.append(span_signal)
+
+            state.span_signals=span_signal
         
         return state

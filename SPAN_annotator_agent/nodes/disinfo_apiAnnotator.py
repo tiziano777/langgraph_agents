@@ -12,6 +12,9 @@ from utils.ErrorHandler import ErrorHandler
 
 
 # Caricamento modelli SpaCy
+# python -m spacy download en_core_web_sm
+# python -m spacy download it_core_news_sm
+
 en_nlp = spacy.load("en_core_web_sm")
 it_nlp = spacy.load("it_core_news_sm")
 
@@ -133,6 +136,8 @@ class Annotator:
                 signals.append(cumulative_annotations_flat)
 
         self.logger(total_input_tokens,total_output_tokens)
+        
+        #print(signals)
         
         return {
             'clickbait': clickbait_score,

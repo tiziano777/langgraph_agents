@@ -29,7 +29,16 @@ def create_pipeline(annotator, output_correction, span_format, writer):
     workflow.add_edge("correction_node", "span_node")
     workflow.add_edge("span_node", "writer_node")
     workflow.add_edge("writer_node", END)
-    return workflow.compile()
+    
+    # Compila il flusso
+    pipeline = workflow.compile()
+
+    # Salva immagine grafo
+    graphImage=pipeline.get_graph().draw_mermaid_png()
+    with open("graph.png", "wb") as f:
+        f.write(graphImage)
+ 
+    return pipeline
 
 def run_pipeline(data_path, label_path, output_path, checkpoint_path, lang, llm_config, prompts):
     

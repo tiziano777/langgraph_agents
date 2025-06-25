@@ -6,11 +6,11 @@ from langgraph.graph import StateGraph, START, END
 
 from states.disinfo_state import State 
 
-from nodes.disinfo.disinfo_apiAnnotator import Annotator
-from nodes.disinfo.disinfo_OutputCorrection import OutputCorrection
-from nodes.disinfo.disinfo_SpanFormat import SpanFormat
-from nodes.disinfo.disinfo_StreamWriter import StreamWriter
-from nodes.disinfo.disinfo_SpanRefine import SpanRefiner 
+from nodes.disinfo_apiAnnotator import Annotator
+from nodes.disinfo_OutputCorrection import OutputCorrection
+from nodes.disinfo_SpanFormat import SpanFormat
+from nodes.disinfo_StreamWriter import StreamWriter
+from nodes.disinfo_SpanRefine import SpanRefiner 
 
 from utils.CostAnalyze import CostAnalyze
 import traceback
@@ -63,7 +63,16 @@ def create_pipeline(annotator, output_correction, span_refiner, span_format, wri
     workflow.add_edge("span_node", "writer_node")
     workflow.add_edge("writer_node", END)
     
-    return workflow.compile()
+    pipeline=workflow.compile()
+    
+    # Show workflow
+    '''
+    graphImage=pipeline.get_graph().draw_mermaid_png()
+    with open("graph.png", "wb") as f:
+        f.write(graphImage)
+    '''
+    
+    return pipeline
 
 
 def run_pipeline(input_path, output_path, checkpoint_path, llm_config, prompts):

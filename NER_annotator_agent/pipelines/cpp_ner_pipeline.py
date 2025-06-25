@@ -4,10 +4,10 @@ import yaml
 from langchain_community.llms import LlamaCpp
 from langgraph.graph import START, END, StateGraph
 from states.ner_state import State
-from nodes.ner.ner_cppAnnotator import Annotator
-from nodes.ner.ner_OutputCorrection import NerCorrection
-from nodes.ner.ner_SpanFormat import NerSpanFormat
-from nodes.ner.ner_StreamWriter import StreamWriter
+from nodes.ner_cppAnnotator import Annotator
+from nodes.ner_OutputCorrection import NerCorrection
+from nodes.ner_SpanFormat import NerSpanFormat
+from nodes.ner_StreamWriter import StreamWriter
 
 
 # Crea le istanze dei tuoi oggetti
@@ -42,18 +42,14 @@ def create_pipeline(annotator: Annotator, ner_correction: NerCorrection,ner_span
     workflow.add_edge(writer_node_name, end_node)
 
     # Compila il flusso
-    chain = workflow.compile()
+    pipeline = workflow.compile()
 
     # Salva immagine grafo
-    
-    '''
-    graphImage=chain.get_graph().draw_mermaid_png()
+    graphImage=pipeline.get_graph().draw_mermaid_png()
     with open("graph.png", "wb") as f:
         f.write(graphImage)
-    '''
-
-        
-    return chain
+ 
+    return pipeline
 
 # Esegui la pipeline su una lista di testi
 def run_pipeline(input_path,output_path,checkpoint_path, prompt):

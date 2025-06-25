@@ -11,11 +11,11 @@ from pipelines.api_disinfo_pipeline_refiner import run_pipeline
 
 # CONFIG
 TOPIC = "election"
-INPUT_PATH = f'./data/raw/{TOPIC}_articles_deduplicated.jsonl'
+INPUT_PATH = f'./data/input/{TOPIC}_articles_deduplicated.jsonl'
 OUTPUT_PATH = f'./data/output/{TOPIC}_articles_annotated.jsonl'
 CHECKPOINT_PATH = f'./data/checkpoint/{TOPIC}_checkpoint.json'
 
-PROMPTS_PATH = './config/disinfo_prompts.yml'
+PROMPTS_PATH = './prompt/disinfo_prompts.yml'
 MODEL_CONFIG = "./config/gemini2.0-flash.yml"
 
 def main():
