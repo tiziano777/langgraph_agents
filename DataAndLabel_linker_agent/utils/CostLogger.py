@@ -8,7 +8,7 @@ class CostLogger:
     def __init__(self,
                  input_cost=INPUT_COST_PER_MILLION,
                  output_cost=OUTPUT_COST_PER_MILLION,
-                 log_file_path: str = "/home/tiziano/annotation_agent/log/token_cost_log.jsonl"):
+                 log_file_path: str = "/home/tiziano/langgraph_agents/DataAndLabel_linker_agent/log/token_cost_log.jsonl"):
         
         self.log_file_path = log_file_path
         self.INPUT_COST_PER_MILLION = input_cost

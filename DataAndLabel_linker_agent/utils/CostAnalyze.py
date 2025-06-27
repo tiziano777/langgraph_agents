@@ -7,7 +7,7 @@ class CostAnalyze:
     Classe per il calcolo costi di servizio API.
     """
 
-    def __init__(self,log_file_path: str = "/home/tiziano/annotation_agent/log/token_cost_log.jsonl"):
+    def __init__(self,log_file_path: str = "/home/tiziano/langgraph_agents/DataAndLabel_linker_agent/log/token_cost_log.jsonl"):
         
         self.log_file_path = log_file_path
         
@@ -23,7 +23,8 @@ class CostAnalyze:
             with open(self.log_file_path, "r", encoding="utf-8") as f:
                 for line in f:
                     entry = json.loads(line)
-                    if entry.get("timestamp", "").startswith(today):
+                    print(entry)
+                    if entry and entry.get("timestamp", "").startswith(today):
                         total_cost += float(entry.get("cost", 0.0))
         except FileNotFoundError:
             return  # Nessun log da analizzare

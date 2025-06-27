@@ -22,7 +22,10 @@ class SpanFormat:
         pass
     
     def __call__(self, state: State) -> State:
-        print('OUTPUT NerCorrection & INPUT NerSpanFormat: ', state)
+        print(f'\nOUTPUT Output Correction & INPUT Linking SpanFormat:  {state} \n')
+        
+        if state.error_status:
+            return state
         
         text=state.chunk_text
         span_ner = []
@@ -38,6 +41,6 @@ class SpanFormat:
                             "start": match.start(),
                             "end": match.end()
                         })
-                    
+        
         
         return {"span_ner": span_ner}

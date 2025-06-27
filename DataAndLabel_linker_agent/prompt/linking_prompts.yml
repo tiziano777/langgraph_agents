@@ -1,79 +1,107 @@
 linking_prompt: >
-  You are an entity normalization engine. Given raw text (from OCR) and a dictionary of extracted entities, normalize both based on strict rules.
+  <scenario>
+    You are an entity normalization engine.
+    Given raw text (from OCR) and a dictionary of extracted entities,
+    normalize and allign both based on strict rules.
+    We want to create text and labels alligned dataset for a machine learning model.
+    The allignment can be consitent to the input ingestion format that is a tokenization by " " (space).
+    You have to modify and return the text key and labels key to match the schema and format rules, following the example.
+  <\scenario>
 
-  Task:
-  Normalize text and entities per schema.
-  Ensure normalized entities appear verbatim in the normalized text and vice-versa.
-  Convert normalized_text to lowercase, preserving TenderID casing.
-  Resolve text/entity inconsistencies, correcting both.
-
-  📐 Schema Formatting Rules:
-    -TenderID: Format NNN-YYYY-AA/BB (3-digit NNN, 4-digit YYYY, uppercase alphanumeric AA/BB). Remove extra chars. Example: "EN N_ 125_2022-SP/HV" → "125-2022-SP/HV"
+  <schema>
+    -TenderID: Format EN_C_NNN_YYYY_AA/BB (EN prefix, C is the category code char, can be {N,M,X}, 3-digit number NNN, 4-digit year YYYY, uppercase alphanumeric AA/BB). Example:"EN_N_125_2022_SP/HV"
     -ContactPersons and SignedBy: Keep only alphabeticals. Normalize diacritics. Separate names with a single space. Output lowercase. Example: "Dr. Jöhn D'oe!" → "john doe"
     -TenderDeadline: Normalize to dd.mm.yyyy. Convert from YYYY-MM-DD, dd/mm/yyyy, dd.mm.yy, etc. Correct OCR errors. Example: "2023/01/12" or "12-01-2023" → "12.01.2023"
-    -PurchasedGoodServices: Remove punctuation/special characters. Single-space separation. Output lowercase. Example: "Laptops,Keyboards& Accessories!" → "laptops keyboards accessories"
+    -PurchasedGoodServices: Leave it as a free text variable, but data and annotations must match.
+  <\schema>
+
+  <format>
+    📥 Input Format (IOB tagging):
+    {
+      "chunk_text": "<OCR-extracted noisy text>",
+      "entities": [
+        {"TenderID": "EN_C_NNN-YYYY-AA/BB"},
+        {"ContactPersons": "str"},
+        {"SignedBy": "str"},
+        {"TenderDeadline": "dd.mm.yyyy | dd/mm/yyyy | dd-mm-yyyy | yyyy-mm-dd"},
+        {"PurchasedGoodServices": "str"}
+      ]
+    }
+    📤 Expected Output Format (JSON SPAN):
+    {
+      "chunk_text": "< corrected text alligned with labels >",
+      "labels": [
+        {"TenderID": "en_n_123-2024-aa/bb"},
+        {"ContactPersons": "str"},
+        {"SignedBy": "str"},
+        {"TenderDeadline": "dd.mm.yyyy"},
+        {"PurchasedGoodServices": "str"}
+      ]
+    }
+  <\format>
+
+  <constraints> 
+    - TenderID is the most imporatant entity, preserve much informations as possible, if the informations can let you to write the EN_C_NNN-YYYY-AA/BB format or a substring, write it, else remove it form list. 
+    - You are free to reconstruct and allign input to respect the schema formatting rules in both text and labels.
+    - Apply fuzzy matching/OCR correction based on schema rules and mismatches between input text and labels.
+    - Dont miss any entity, If some entities are not present in the text, drop it, because probably the text can be chunked!
+    - Text is lowercase, and labels can follow same pattern.
+  <\constraints>
+
+  <Example>
+    Input:
+    "chunk_text": "the tender 2023 sm/ms en_n_179 is managed by john d oe and will close on 12. 01. 2023. items laptops keyboards accessories signed by  john d oe",
+    "entities":[
+        {"TenderID": "EN_N_179_2023_SM/MS"},
+        {"ContactPersons": "john d'oe"},
+        {"SignedBy": "john d'oe"},
+        {"TenderDeadline": "12/01/2023"},
+        {"PurchasedGoodServices": "laptops! keyboards& ACCESSORIES"}
+    ]
+    JSON Output:
+    {
+      "chunk_text": "the tender en_n_179_2023_sm/ms is managed by john doe and will close on 12.01.2023 items laptops keyboards accessories signed by john doe",
+      "labels": [
+        {"TenderID": "en_n_179_2023_sm/ms"},
+        {"ContactPersons": "john doe"},
+        {"SignedBy": "john doe"},
+        {"TenderDeadline": "12.01.2023"},
+        {"PurchasedGoodServices": "laptops keyboards accessories"}
+      ]
+    }
+  <\Example>
+
+  <Empty_Example>
+    Input:
+    "chunk_text": "v primeru da gre za redno zaposlenega serviserja pri pooblascenem servisu je potrebno priloziti obrazce m-1/m-2 prijava odjava iz pokojninskega in invalidskega zavarovanja ki dokazuje sklenjeno pogodbo o zaposlitvi. " 
+    "entities":[
+      {'Tender-TenderID': '309-2022-DA/VH'},
+      {'Tender-PurchasedGoodServices': 'POPRAVILO CENTRIFUGE HERAEUS CRYOFUGE 6000'},
+      {'Tender-ContactPersons': 'Matej Vidmar'},
+      {'Tender-Deadline': '19.05.2022'}
+    ]
+
+    JSON Output:
+    {
+      "chunk_text": "v primeru da gre za redno zaposlenega serviserja pri pooblascenem servisu je potrebno priloziti obrazce m-1/m-2 prijava odjava iz pokojninskega in invalidskega zavarovanja ki dokazuje sklenjeno pogodbo o zaposlitvi. " 
+      "labels": []
+    }
+  <\Empty_Example>
+
+  <Partial_Empty_Example>
+    Input:
+    "chunk_text": "ponudbe posljite na naslov elektronske poste nabava2 0 sb-celje.si z oznako en n 52 kombinirani cistilni stroj 22 do najkasneje 27.06.2022 do bure narocnik splosna bolnisnica celje 2 vodja nabavne sluzbe matjaz stinek univ.dipl.ekon. postopek ms/ms " 
+    "entities":[{'Tender-TenderID': 'EN N 52-2022-SL/MS'}, {'Tender-PurchasedGoodServices': 'KOMBINIRANI ČISTILNI STROJ'}, {'Tender-ContactPersons': 'Sandi Lužar'}, {'Tender-ContactPersons': 'Stane Mulej'}, {'Tender-Deadline': '27.06.2022'}]
     
-  📥 Input Format (IOB tagging):
+  JSON Output: 
   {
-    "text": "<OCR-extracted noisy text>",
-    "entities": {
-      "B-TenderID": "...",
-      "B-ContactPersons": "...",
-      "I-ContactPersons": "...",
-      "B-SignedBy": "...",
-      "I-SignedBy": "...",
-      "B-TenderDeadline": "...",
-      "B-PurchasedGoodServices": "...",
-      "I-PurchasedGoodServices": "..."
-    }
+    "chunk_text": "ponudbe posljite na naslov elektronske poste nabava2 0 sb-celje.si z oznako en_n_52_2022_sl/ms kombinirani cistilni stroj 22 do najkasneje 27.06.2022 do bure narocnik splosna bolnisnica celje 2 vodja nabavne sluzbe matjaz stinek univ.dipl.ekon. postopek sl/ms",
+    "labels": [
+      {"TenderID": "en_n_52_2022_ms/ms"},
+      {"PurchasedGoodServices": "kombinirani cistilni stroj"},
+      {"TenderDeadline": "27.06.2022"}
+    ]
   }
-  📤 Expected Output Format (JSON SPAN):
-  {
-    "normalized_text": "<corrected lowercase text with uppercase TenderID>",
-    "normalized_entities": {
-      "TenderID": "...",
-      "ContactPersons": "...",
-      "SignedBy": "...",
-      "TenderDeadline": "...",
-      "PurchasedGoodServices": "..."
-    }
-  }
+  <\Partial_Empty_Example>
 
-  ⚠️ Constraints & Alignment:
-  All normalized_entities values must appear verbatim in normalized_text.
-  All entity references in normalized_text must be in normalized_entities.
-  normalized_text is lowercase, except for exact TenderID casing.
-  Apply fuzzy matching/OCR correction.
-  If normalization fails, include a validation_warning field.
-
-  🧪 Example:
-  Input:
-  {
-    "text": "The tender 125_ 2022-SP/HV is managed by Dr. Jöhn D'oe and will close on 12/01/2023. Items: Laptops,Keyboards& Accessories!",
-    "entities": {
-      "B-TenderID": "125_ ",
-      "I-TenderID": "2022-SP/HV",
-      "B-ContactPersons": "Dr.",
-      "I-ContactPersons": "Jöhn",
-      "I-ContactPersons": "D'oe",
-      "B-SignedBy": "Dr.",
-      "I-ContactSignedByPersons": "Jöhn",
-      "I-SignedBy": "D'oe",
-      "TenderDeadline": "12/01/2023",
-      "B-PurchasedGoodServices": "Laptops,Keyboards&",
-      "I-PurchasedGoodServices": "Accessories!"
-    }
-  }
-  Output:
-  {
-    "normalized_text": "the tender 125-2022-SP/HV is managed by john doe and will close on 12.01.2023. items: laptops keyboards accessories",
-    "normalized_entities": {
-      "TenderID": "125-2022-SP/HV",
-      "ContactPersons": "john doe",
-      "SignedBy": "john doe",
-      "TenderDeadline": "12.01.2023",
-      "PurchasedGoodServices": "laptops keyboards accessories"
-    }
-  }
-
-  📥📥 Input text:
+  📥📥 Input text: 

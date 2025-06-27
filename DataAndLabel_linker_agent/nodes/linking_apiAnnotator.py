@@ -2,19 +2,36 @@ import json
 import re
 import spacy
 import traceback
+import logging
+import unicodedata
 from typing import List
-
 from json_repair import repair_json
 
 from states.linking_state import State
-from utils.CostLogger import CostLogger 
 from utils.ErrorHandler import ErrorHandler
 
+# Configurazione logger globale per il modulo
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
-# Caricamento modelli SpaCy
-#en_nlp = spacy.load("en_core_web_sm")
-#it_nlp = spacy.load("it_core_news_sm")
-#sl_nlp = spacy.load("sl_core_news_sm")  
+if not logger.handlers:
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('[%(asctime)s][%(levelname)s][%(name)s] %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
+def handle_exception(state, error_string, e):
+    """
+    Funzione ausiliaria per la gestione centralizzata delle eccezioni.
+    Logga errore, traceback ed aggiorna lo stato con un messaggio d'errore coerente.
+    """
+    full_error = f"{error_string}: {str(e)}"
+    full_trace = traceback.format_exc()
+    logger.error(full_error + "\n" + full_trace)
+    state.error_status = full_error
+    logger.error("STATE ERROR RETURN: %s", {'state': str(state)})
+    return {'error_status': full_error}
 
 class Annotator:
     """
@@ -22,172 +39,154 @@ class Annotator:
     """
 
     def __init__(self, llm, input_context, prompts=None):
-        """
-        :param llm: Modello LangChain-compatible (es. ChatGoogleGenerativeAI).
-        :param input_context: Numero massimo di token di contesto.
-        :param prompts: Prompt di sistema da usare per l'annotazione.
-        """
         self.llm = llm
         self.system_prompts = prompts
         self.input_context = input_context
-        self.logger = CostLogger()  # Istanza per logging dei token e costi
         self.error_handler = ErrorHandler()
-        self.end_prompt = "\n OUTPUT: \n"
+        self.end_prompt = "\n 📥📥 Output JSON text: : \n"
+
+    def __call__(self, state: State):
+        print(f'\n INPUT Annotator:  {state} \n')
+        return self.annotate(state)
 
     def annotate(self, state: State):
-        text = state.chunk_text
-        labels_path= state.labels_path
-
-        text = self.process_text(text)
-        
-        total_input_tokens = 0
-        total_output_tokens = 0
-
-        ####### START CUSTOM LOGIC #######
-        
-        # Carica le etichette dal file JSON, convert form BIO to spans
-        # Parsing IOB -> lista di oggetti con entità complete
-        entity_mentions = []
-        if labels_path:
-            try:
-                with open(labels_path, "r", encoding="utf-8") as f:
-                    label_data = json.load(f)
-
-                    current_entity_type = None
-                    current_tokens = []
-
-                    for item in label_data:
-                        tag = item.get("entity")
-                        token = item.get("token")
-
-                        if not tag or not token:
-                            continue
-
-                        if tag.startswith("B-"):
-                            # Chiude la precedente entità se presente
-                            if current_entity_type and current_tokens:
-                                entity_mentions.append({
-                                    current_entity_type: " ".join(current_tokens)
-                                })
-                            # Inizia nuova entità
-                            current_entity_type = tag[2:]  # rimuove "B-"
-                            current_tokens = [token]
-
-                        elif tag.startswith("I-"):
-                            entity_type = tag[2:]
-                            if current_entity_type == entity_type:
-                                current_tokens.append(token)
-                            else:
-                                # errore di struttura BIO: chiude la corrente, apre nuova
-                                if current_entity_type and current_tokens:
-                                    entity_mentions.append({
-                                        current_entity_type: " ".join(current_tokens)
-                                    })
-                                current_entity_type = entity_type
-                                current_tokens = [token]
-
-                        else:
-                            # token senza prefisso: ignora o logga errore
-                            continue
-
-                    # Chiude eventuale ultima entità aperta
-                    if current_entity_type and current_tokens:
-                        entity_mentions.append({
-                            current_entity_type: " ".join(current_tokens)
-                        })
-            except Exception as e:
-                print(f"Errore nella lettura del file label: {e}")
-                traceback.print_exc()
-                return {'error_status': f'Error reading labels file: {str(e)}'}
-        else:
-            return {'error_status': 'Labels path is missing'}
-
-        #print(f"Entity tokens: {entity_mentions}")
-       
-        
-        # prompt for the linking task
-        linking_prompt = self.system_prompts.get('linking_prompt', "")
+        ### CUSTOM LOGIC ###
+        # Core della logica di annotazione: normalizzazione testo, estrazione etichette IOB, invocazione LLM
         try:
-            full_prompt = linking_prompt + text +' \n Input LABELS \n ' + str(entity_mentions) + self.end_prompt
-            raw_linking = self.error_handler.invoke_with_retry(llm=self.llm, prompt=full_prompt)
-            
-            log = raw_linking.usage_metadata
-            total_input_tokens += log["input_tokens"]
-            total_output_tokens += log["output_tokens"]
-            
-            #EXTRACT LIST JSON OUTPUT
-            json_linking = self.extract_json(raw_linking.content)
-            
+            text = self.process_text(state.chunk_text)
+            state.chunk_text = text  # Aggiorna lo stato con il testo processato
         except Exception as e:
-            print(f"Errore nel linking parsing: {e}")
-            traceback.print_exc()
+            return handle_exception(state, "Exception in process_text", e)
+
+        try:
+            entity_mentions = self.extract_iob_labels(state)
+        except Exception as e:
+            return handle_exception(state, "Exception in extract_iob_labels", e)
+
+        print(f'Entity mentions extracted: {entity_mentions}')
         
-        '''
-        print('text:\n\n'+str(text))
-        print("initial_labels:\n\n"+str(entity_mentions))
-        print("llm_labels:\n\n"+str(json_linking))
-        '''
+        ### CUSTOM LOGIC ###
         
+        try:
+            linking_prompt = self.system_prompts.get('linking_prompt', "")
+            # Costruzione del prompt per LLM
+            full_prompt = linking_prompt + '\n "chunk_text": "' + text + ' " \n "entities":'+   str(entity_mentions) + self.end_prompt
+
+            print(f'Full prompt for LLM: {full_prompt}')
+            
+            # Invocazione robusta del modello LLM
+            raw_linking = self.error_handler.invoke_with_retry(llm=self.llm, prompt=full_prompt)
+            log = raw_linking.usage_metadata
+            total_input_tokens = log.get("input_tokens", 0)
+            total_output_tokens = log.get("output_tokens", 0)
+
+        except Exception as e:
+            return handle_exception(state, "Exception in LLM call or prompt construction", e)
+
+        try:
+            # Parsing JSON dell'output del modello
+            print(f'Raw linking content: {raw_linking}')
+            json_linking = self.extract_json(raw_linking.content, state)
+            if json_linking == {}:
+                raise ValueError("Parsed JSON is empty")
+        except Exception as e:
+            return handle_exception(state, "Errore nel parsing JSON dell'output LLM", e)
+
         return {
-            'text': text,  # Ritorna il testo processato
-            'initial_labels':entity_mentions,  # Ritorna le etichette iniziali estratte dal file
-            'labels': json_linking,  # Ritorna le etichette eventualmente corrette dal LLM
+            'chunk_text': json_linking['chunk_text'],
+            'initial_labels': entity_mentions,
+            'labels': json_linking['labels'],
             'input_tokens': total_input_tokens,
             'output_tokens': total_output_tokens,
-        } 
-    
-    def extract_json(self, json_text: str) -> list[dict]: # Il tipo di ritorno è List[Dict]
+        }
+
+    def extract_iob_labels(self, state: State) -> List[dict]:
         """
-        Estrae una lista completa di oggetti JSON validi da una stringa di output.
-        Usa json_repair per tolleranza agli errori.
+        Estrae entità da file etichettato in formato IOB. Ritorna una lista di dizionari.
+        """
+        labels_path = state.labels_path
+        entity_mentions = []
+
+        if not labels_path:
+            raise ValueError("Labels path is missing")
+
+        try:
+            with open(labels_path, "r", encoding="utf-8") as f:
+                label_data = json.load(f)
+
+                current_entity_type = None
+                current_tokens = []
+
+                for item in label_data:
+                    tag = item.get("entity")
+                    token = item.get("token")
+
+                    if not tag or not token:
+                        continue
+
+                    if tag.startswith("B-"):
+                        if current_entity_type and current_tokens:
+                            entity_mentions.append({current_entity_type: " ".join(current_tokens)})
+                        current_entity_type = tag[2:]
+                        current_tokens = [token]
+
+                    elif tag.startswith("I-"):
+                        entity_type = tag[2:]
+                        if current_entity_type == entity_type:
+                            current_tokens.append(token)
+                        else:
+                            if current_entity_type and current_tokens:
+                                entity_mentions.append({current_entity_type: " ".join(current_tokens)})
+                            current_entity_type = entity_type
+                            current_tokens = [token]
+
+                if current_entity_type and current_tokens:
+                    entity_mentions.append({current_entity_type: " ".join(current_tokens)})
+
+        except Exception as e:
+            raise e
+
+        return entity_mentions
+
+    def extract_json(self, json_text: str, state: State) -> list:
+        """
+        Ripara e deserializza l'output JSON generato da LLM. Restituisce una lista oppure {} in caso di errore.
         """
         try:
-            # Ripara l'intera stringa prima di tentare di caricarla come JSON.
-            # Questo è cruciale perché l'output completo dovrebbe essere una lista JSON.
+            print("json text: ", json_text)
             repaired_text = repair_json(json_text)
-
-            # Il tuo output atteso è una lista di JSON.
-            # Assicurati che l'intera stringa riparata sia un JSON array valido.
-            # Non cercare solo il primo oggetto {}. Se l'output è una lista,
-            # json.loads la gestirà direttamente.
+            
             parsed_json = json.loads(repaired_text)
 
-            # Verifica se il risultato è effettivamente una lista (come atteso)
-            if not isinstance(parsed_json, list):
-                print(f"L'output JSON riparato non è una lista: {parsed_json}")
-                return [] # Restituisci una lista vuota o gestisci l'errore diversamente
+            if not isinstance(parsed_json, dict):
+                raise ValueError("Parsed JSON is not a dict")
 
             return parsed_json
 
-        except json.JSONDecodeError as e:
-            print(f"Errore di decodifica JSON dopo la riparazione:\n→ Testo originale:\n{json_text}\n→ Testo riparato:\n{repaired_text}\n→ Errore: {e}")
-            return [] # Restituisci una lista vuota in caso di errore di parsing
         except Exception as e:
-            print(f"Errore generico nel parsing JSON:\n→ Testo:\n{json_text}\n→ Errore: {e}")
-            return []
+            return handle_exception(state, "Errore nel parsing JSON", e)
 
-    def process_text(self, text: str) -> List[str]:
-        """
-        rimuove alcune parti del testo che non sono utili
-        """
+    def process_text(self, text: str) -> str:
+        ### CUSTOM TEXT PROCESSING WITH NORMALIZATION ###
+        try:
+            # Conversione minuscola
+            text = text.lower()
 
-        # 1. \n -> " "
-        text = re.sub(r"\n+", " ", text)
-        # 2. __+ -> " "
-        text = re.sub(r"_{2,}", " ", text)
-        # 3. \t -> " "
-        text = text.replace("\t", " ")
-        # 4. \f -> " "
-        text = text.replace("\f", " ")
-        # 5. Normalizzazione degli spazi
-        text = re.sub(r" {2,}", " ", text)
-        
-        return text
+            # Normalizzazione dei caratteri conacritici (e.g., "Jöhn" -> "john")
+            text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('utf-8')
 
-    def __call__(self, state: State):
-        """
-        Entry-point per LangGraph node.
-        """
-        #print('INPUT Annotator: ', state)
+            # Sostituisce la punteggiatura (eccetto "/" , "-" e '.') con spazio
+            text = re.sub(r"[^\w\s./-]", " ", text)
 
-        return self.annotate(state)
+            ### CUSTOM LOGIC ###
+            # Pulizia input OCR da sequenze anomale
+            text = re.sub(r"\n+", " ", text)
+            text = re.sub(r"_{2,}", " ", text)
+            text = text.replace("\t", " ")
+            text = text.replace("\f", " ")
+            text = re.sub(r" {2,}", " ", text)
+
+            return text.strip()
+
+        except Exception as e:
+            raise e

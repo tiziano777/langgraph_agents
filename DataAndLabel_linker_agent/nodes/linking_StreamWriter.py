@@ -26,7 +26,11 @@ class StreamWriter:
         return unique_spans
 
     def __call__(self, state: State) -> State:
-        print('OUTPUT NerSpanFormat & INPUT Writer: ', state)
+        print('\nOUTPUT NerSpanFormat & INPUT Writer: ', state)
+        
+        if state.error_status:
+            return state
+        
         spans= state.span_ner
         text=state.chunk_text
         id= state.id

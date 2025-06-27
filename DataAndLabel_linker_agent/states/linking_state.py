@@ -3,6 +3,8 @@ from typing import List, Dict, Optional, Any
 
 class State(BaseModel):
     
+    ### CUSTOM LOGIC ###
+    
     #first stage, input text, related id, and chunk id, and reference to its labels in memory 
     id: Optional[str] = Field(default=None, description="ID del file di input")
     chunk_id: Optional[Any] = Field(default=None, description="ID del chunk di input")
@@ -14,7 +16,7 @@ class State(BaseModel):
     labels: Optional[List[Dict[str, str]]] = Field(default=None, description="Etichette eventually corrected by the LLM")
     
     # third stage, ensure labels span with exact match form input text
-    span_ner: Optional[List[Dict[str, str]]] = Field(default=None, description="Span NER con posizioni nel testo")
+    span_ner: Optional[List[Dict[str, Any]]] = Field(default=None, description="Span NER con posizioni nel testo")
     
     error_status: Optional[str] = Field(default=None, description="Stato dell'errore")
     language: Optional[str] = Field(default=None, description="Lingua del testo")
