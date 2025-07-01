@@ -25,15 +25,15 @@ class StreamWriter:
                 unique_spans.append(span)
         return unique_spans
 
-    def __call__(self, state: State) -> State:
-         #print('OUTPUT NerSpanFormat & INPUT Writer: ', state)
+    def _write_to_file(self, state: State):
+        """
+        Write the cleaned data to the file in JSONL format.
+        """
         try:
             data_to_write = []  # Accumulate cleaned data
-
-            for text, spans in zip(state.segmented_text, state.span_ner):
-                if spans: # Controlla se 'ner' non è un dizionario vuoto
-                    deduplicated_spans = self._deduplicate_spans(spans)
-                    data_to_write.append({'text': text, 'span': deduplicated_spans})
+            if state.span_ner: # Controlla se 'ner' non è un dizionario vuoto
+                    deduplicated_spans = self._deduplicate_spans(state.span_ner)
+                    data_to_write.append({'id':state.id, 'chunk_id':state.chunk_id,'text': state.text , 'span': deduplicated_spans})
 
             # Atomic write of the JSONL data
             with open(self.file, "a", encoding="utf-8") as f:
@@ -44,8 +44,26 @@ class StreamWriter:
             return {'error_status': None}
 
         except:
-            print(f'cannot write on file this data: {text}')
-            state.error_status=f'cannot write on file this data: {text}'
+            print(f'cannot write on file this data: {state.text}')
+            state.error_status=f'cannot write on file this data: {state.text}'
+            return state
+
+    def _write_to_db(self, state: State):
+        """
+        Placeholder for writing to a database.
+        Currently, this method does nothing but can be implemented later.
+        """
+        # Implement database writing logic here if needed
+        pass
+
+    def __call__(self, state: State) -> State:
+        print('OUTPUT NerSpanFormat & INPUT Writer: ', state)
+        state.error_status = self._write_to_file(state)
+        if state.error_status is not None:
+            print(f"Error writing to file: {state.error_status}")
+            return state
+        else:
+            # Store data on Database
             return state
 
 

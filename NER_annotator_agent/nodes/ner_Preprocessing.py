@@ -1,12 +1,10 @@
-import json, re, spacy
+import re
 import logging
 import traceback
 import unicodedata
-
 from states.ner_state import State
-from json_repair import repair_json
 
-nlp = spacy.load("sl_core_news_lg")
+#nlp = spacy.load("sl_core_news_lg")
 
 # Configurazione logger globale per il modulo
 logger = logging.getLogger(__name__)
@@ -31,68 +29,20 @@ def handle_exception(state, error_string, e):
     logger.error("STATE ERROR RETURN: %s", {'state': str(state)})
     return {'error_status': full_error}
 
-class Annotator():
+class Preprocessor():
     """
-    Wrapper per un modello LLM compilato con llama.cpp, utilizzabile come nodo di elaborazione in LangGraph.
+    Initial System Gateway for text preprocessing.
     """
-    def __init__(self, llm, max_sentence_length: int = 4000,system_prompt: str = None):
-        """
-        Inizializza il modello llama.cpp.
-
-        :param llm: Modello quantizzato compitalo com llama.cpp(GGUF).
-        :param max_sentence length: Dimensione massima user input.
-        :param system_prompt: Prompt di sistema da utilizzare per l'annotazione.
-        """
-        self.system_prompt = system_prompt
-        self.output_prompt= "\nOutput:\n"
-        self.max_sentence_length = max_sentence_length
-        self.llm = llm
-
-    def annotate(self, state: State):
-        """
-        Genera un'annotazione per il testo di input utilizzando il modello
-        e converte il risultato in un JSON strutturato.
-
-        :param text: Il testo da elaborare.
-        :return: Un dizionario Python con l'output JSON.
-        """
-        
-        ### CUSTOM TEXT PROCESSING AND INVOCATION LOGIC ###
-        
-        text=self.process_text(state.text)
-        ner=[]
-
-        ner.append(self.extract_json(self.llm.invoke(self.system_prompt+'\n'+text+ self.output_prompt)))
-
-        ### END CUSTOM LOGIC ###
-            
-        return {'text': text,'ner': ner}
-
-    def extract_json(self, json_text: str) -> list:
-        """
-        Ripara e deserializza l'output JSON generato da LLM. Restituisce una lista oppure {} in caso di errore.
-        """
-        try:
-            print("json text: ", json_text)
-            repaired_text = repair_json(json_text)
-            
-            parsed_json = json.loads(repaired_text)
-
-            if not isinstance(parsed_json, list):
-                raise ValueError("Parsed JSON is not a list")
-
-            return parsed_json
-
-        except Exception as e:
-            return handle_exception(json_text, "Errore nel parsing JSON", e)
-     
-    def chunk_text(self, text: str, min_sentence_length: int = 1000):
+    def __init__(self):
+        pass
+    
+    '''def chunk_text(self, text: str, min_sentence_length: int = 1000):
         """
         Se il testo è corto (<n_max) , lo restituisce così com'è.
-        Se è lungo, lo divide in frasi usando spaCy per la lingua slovena,
+        Se è lungo, lo divide in frasi usando spaCy,
         escludendo frasi troppo corte.
 
-        :param text: Stringa di input in sloveno.
+        :param text: Stringa di input.
         :param min_sentence_length: Lunghezza minima delle frasi da includere.
         :return: Lista di stringhe (frasi) se il testo è lungo, altrimenti il testo originale.
         """
@@ -104,7 +54,8 @@ class Annotator():
         sentences = [sent.text.strip() for sent in doc.sents if len(sent.text.strip()) >= min_sentence_length]
         
         return sentences
-     
+    '''
+    
     def process_text(self, text: str) -> str:
         ### CUSTOM TEXT PROCESSING WITH NORMALIZATION ###
         try:
@@ -130,12 +81,18 @@ class Annotator():
         except Exception as e:
             raise e
      
-    def __call__(self, text: State):
+    def __call__(self, state: State):
         """
         Metodo principale per elaborare il testo di input.
 
         :param text: Il testo da elaborare.
         :return: Un dizionario Python con l'output JSON.
         """
-        print('INPUT Annotator: ', text)
-        return self.annotate(text)
+        print('\nINPUT Preprocessor:\n', state.text)
+        
+        try:
+            state.text=self.process_text(state.text) 
+        except Exception as e:
+            return handle_exception(state, "Exception in process_text", e) 
+        
+        return state

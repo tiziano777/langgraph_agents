@@ -11,7 +11,7 @@ from langgraph.graph import START, END, StateGraph
 from states.ner_state import State
 from nodes.ner_cppAnnotator import Annotator
 from nodes.ner_OutputCorrection import NerCorrection
-from nodes.ner_SpanFormat import NerSpanFormat
+from nodes.ner_SpanIdx import NerSpanFormat
 from nodes.ner_StreamWriter import StreamWriter
 
 # === Setup Logging ===
@@ -29,13 +29,6 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
-
-# === Load LLM Config ===
-GEMMA_PATH = "/home/tiziano/AutoAnnotator/src/config/config_gemma3.yml"
-with open(GEMMA_PATH, "r", encoding="utf-8") as f:
-    llm_config = yaml.safe_load(f)
-logger.info(f"Configurazione caricata da {GEMMA_PATH}")
-
 
 def create_pipeline(annotator: Annotator, ner_correction: NerCorrection,
                     ner_span_format: NerSpanFormat, writer: StreamWriter):
@@ -66,13 +59,13 @@ def create_pipeline(annotator: Annotator, ner_correction: NerCorrection,
     return pipeline
 
 
-def run_pipeline(input_path, output_path, checkpoint_path, prompt):
+def run_pipeline(input_path, output_path, checkpoint_path, base_prompt,refinement_prompt,llm_config):
     try:
         model_path = os.path.join(llm_config["model_directory"], llm_config["model_name"])
         user_input_limit = llm_config["user_input_limit"]
 
         logger.info(f"Inizializzazione LLM da: {model_path}")
-        logger.info(f"Prompt di sistema: {prompt}")
+        logger.info(f"Prompt di sistema: {base_prompt}")
 
         llm = LlamaCpp(
             model_path=str(model_path),
@@ -88,24 +81,36 @@ def run_pipeline(input_path, output_path, checkpoint_path, prompt):
             streaming=llm_config["streaming"]
         )
 
-        annotator = Annotator(llm=llm, system_prompt=prompt, max_sentence_length=user_input_limit)
+        annotator = Annotator(llm=llm, system_prompt=base_prompt, max_sentence_length=user_input_limit)
         ner_correction = NerCorrection(similarity_threshold=79)
         span_format = NerSpanFormat()
         writer = StreamWriter(output_file=output_path)
 
         graph = create_pipeline(annotator, ner_correction, span_format, writer)
 
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        os.makedirs(os.path.dirname(checkpoint_path), exist_ok=True)
+        
         # === Load Input Data ===
         with open(input_path, "r", encoding="utf-8") as f:
-            dataset = json.load(f)
+            dataset = [json.loads(line) for line in f if line.strip()]
+
         logger.info(f"Caricato dataset con {len(dataset)} voci da {input_path}")
 
+        if not os.path.exists(output_path):
+            with open(output_path, "w", encoding="utf-8") as f:
+                pass
+
+        if not os.path.exists(checkpoint_path):
+            with open(checkpoint_path, "w", encoding="utf-8") as f:
+                json.dump({"checkpoint": 0}, f, ensure_ascii=False, indent=4)
+        
         with open(checkpoint_path, "r", encoding="utf-8") as f:
             checkpoint = json.load(f).get("checkpoint", 0)
         logger.info(f"Ripresa dal checkpoint: {checkpoint}")
 
         for entry in range(checkpoint, len(dataset)):
-            text = dataset[entry].get("slovenian_text", "")
+            text = dataset[entry].get("text", "")
             if not text:
                 logger.warning(f"Testo vuoto alla riga {entry}, saltato.")
                 continue

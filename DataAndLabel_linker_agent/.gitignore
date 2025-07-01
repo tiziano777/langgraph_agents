@@ -1,8 +1,0 @@
-.env
-.venv/
-data/
-log/
-nodes/__pycache__/
-utils/__pycache__/
-states/__pycache__/
-__pycache__/

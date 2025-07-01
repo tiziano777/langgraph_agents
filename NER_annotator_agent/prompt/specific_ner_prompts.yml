@@ -1,0 +1,121 @@
+TENDER_PROMPT: >
+  <SCENARIO>
+  You will receive a noisy, OCR-derived and partially preprocessed chunk of text.
+  The text may contain typographic errors, extra/missing spaces, or unusual punctuation.
+  Your task is to extract, if present, the following named entities.
+  This is a Named Entity Recognition (NER) task.
+
+  ⚠️ You must return each entity as it appears in the input text, without correcting typos or standardizing format.
+  OCR errors must be preserved in the output.
+  </SCENARIO>
+
+  <SCHEMA>
+  📌 Named Entities to extract:
+  - TenderProcedureNumber: integer between 0 and 999
+  - TenderYear: four-digit year
+  - TenderProcedureCode: code in the format AA/BB or AAA/BB
+  - TenderDeadline: date in format dd.mm.yyyy, or with spaces (e.g., dd. mm. yyyy)
+  - TenderContactPerson: name like "firstname lastname" or "firstname.lastname" (retain any dots)
+  - SignedBy: one of the contact person who signed the document
+  - TenderPurchasedGoodsServices: free-text description of the good(s) or service(s) being acquired; preserve OCR text exactly
+  - TenderAdditionalInformation: free-text description of any additional information, such as contact details, terms, or conditions; preserve OCR text exactly
+  - TenderAllRequirements: a list of free-text descriptions for all general requirements, technical requirements, conditions, and sub-requirements. Preserving OCR text exactly.
+  </SCHEMA>
+
+  <FORMAT>
+  🧾 Output Format (Optional[List[Dict[str, str]]])
+  Return either:
+  [] (empy array) if no relevant entity is found
+  Otherwise, a list of dictionaries, one per detected entity:
+  [
+    { "TenderProcedureNumber":"309" },
+    { "TenderDeadline":"28.04.2023" },
+    ...
+  ]
+  </FORMAT>
+
+  <EXAMPLES>
+  ✅ Example 1 (no OCR errors, single good)
+  Input:
+  postopek 309 2022 da/vh povabilo k oddaji ponudbe narocnik vabi ponudnike da v skladu z navodili ponudnikom izdelajo ponudbo za popravilo centrifuge heraeus cryofuge 6000 naziv aparata centrifuga proizvajalec heraeus tip cryofuge 6000 inv.st. kljuke za oddelcne lekarne do najkasneje 28.04.2023 do 12 ure. vodja nabavne sluzbe matjaz stinek univ.dipl.ekon
+  Output:
+  [
+    { "TenderProcedureNumber": "309" },
+    { "TenderYear": "2022" },
+    { "TenderProcedureCode": "da/vh" },
+    { "TenderDeadline": "28.04.2023" },
+    { "TenderContactPerson": "matjaz stinek" },
+    { "SignedBy": "matjaz stinek" },
+    { "TenderPurchasedGoodsServices": "popravilo centrifuge heraeus cryofuge 6000" }
+  ]
+
+  ✅ Example 2 (with dotted name, spacing in deadline, multiple goods)
+  Input:
+  en n 123 2022 sp/hv rok za oddajo 10. 07. 2024 kontaktna oseba ana.novak odgovorna oseba ana.novak predmet javnega narocila: dobava pisarniskega materiala tonerjev in pisal
+  Output:
+  [
+    { "TenderProcedureNumber": "123" },
+    { "TenderYear": "2022" },
+    { "TenderProcedureCode": "sp/hv" },
+    { "TenderDeadline": "10. 07. 2024" },
+    { "TenderContactPerson": "ana.novak" },
+    { "SignedBy": "ana.novak" },
+    { "TenderPurchasedGoodsServices": "dobava pisarniskega materiala tonerjev in pisal" }
+  ]
+
+  ✅ Example 3 (partial match, one product)
+  Input:
+  dokumentacija za postopek m 045 2023 mvk/vh mora biti predlozena pravocasno za dobavo ultrazvocnih gelov
+  Output:
+  [
+    { "TenderProcedureNumber":"045" },
+    { "TenderYear":"2023" },
+    { "TenderProcedureCode":"mvk/vh" },
+    { "TenderPurchasedGoodsServices":"dobavo ultrazvocnih gelov" }
+  ]
+
+  ✅ Example 4 (partial match)
+  Input:
+  postopek 777 2024 kj/hv storitev pranja uniform za potrebe bolnisnicnega osebja
+  Output:
+  [
+    { "TenderProcedureNumber":"777" },
+    { "TenderYear":"2024" },
+    { "TenderProcedureCode":"kj/hv" },
+    { "TenderPurchasedGoodsServices":"storitev pranja uniform za potrebe bolnisnicnega osebja" }
+  ]
+
+  ✅ Example 5 (no match)
+  Input:
+  navodila za uporabo opreme najdete v prilozenem dokumentu. navodila se nanasajo na pravilno uporabo centrifuge tip cryofuge 6000.
+  Output:
+    []
+
+  ✅ Example 6 (no ID, multiple non-contiguous goods/services, contact + context)
+  Input:
+  kontaktna oseba luka.zajc predmet javnega narocila je najem tiskalnikov za obdobje treh let. poleg tega bo izvedena tudi dobava kartus in papirja za vse oddelke.
+  Output:
+  [
+    { "TenderContactPerson": "luka.zajc" },
+    { "TenderPurchasedGoodsServices": "najem tiskalnikov za obdobje treh let" },
+    { "TenderPurchasedGoodsServices": "dobava kartus in papirja za vse oddelke" },
+    { "TenderAdditionalInformation": "predmet javnega narocila je najem tiskalnikov za obdobje treh let" }
+  ]
+
+  ✅ Example 7 (only requirements and technical specs)
+  Input:
+  cena mora vsebovati vse stroske, popuste, rabate in davek na dodano vrednost. v ceni mora biti zajeta kompletna dobava in montaza ter vsi zakljucki.  izvajalec  mora zagotoviti dostavo blaga ter montazo in namestitev v prostor pri narocniku v delovnem casu za dostavo oz. prevzem blaga (od ponedeljka do petka od 6 00 do 14 ure). pogoj za placilo racuna je uspesna primopredaja izvedenih del, ki vkljucuje s strani narocnika podpisano porocilo izvajalca o izvedenem obsegu del v obliki delovnega naloga, z natancnim opisom izvedenih storitev in zamenjavi materiala. pristojna oseba narocnika za podpis je blaz dezelak. tehnicni podatki tip jensen dt 60 hd serijska dewr006003005322010 leto proizvodnje 2020 nacin gretja para max. 14bar max. pretok pare 478 kg/h max. moc 284 8 kw.
+  Output:
+  [
+    { "TenderAllRequirements": "cena mora vsebovati vse stroske popuste rabate in davek na dodano vrednost. v ceni mora biti zajeta kompletna dobava in montaza ter vsi zakljucki.  izvajalec  mora zagotoviti dostavo blaga ter montazo in namestitev v prostor pri narocniku v delovnem casu za dostavo oz. prevzem blaga (od ponedeljka do petka od 6 00 do 14 ure)." },
+    { "TenderAllRequirements": "pogoj za placilo racuna je uspesna primopredaja izvedenih del ki vkljucuje s strani narocnika podpisano porocilo izvajalca o izvedenem obsegu del v obliki delovnega naloga z natancnim opisom izvedenih storitev in zamenjavi materiala. pristojna oseba narocnika za podpis je blaz dezelak." },
+    { "TenderAllRequirements": "tehnicni podatki tip Jensen dt 60 hd serijska dewr006003005322010 leto proizvodnje 2020 nacin gretja para max. 14bar max. pretok pare 478 kg/h max. moc 284 8 kw." }
+  ]
+
+  </EXAMPLES>
+
+  Input:
+
+
+TENDER_REFINEMENT_PROMPT: >
+  Refinement prompt Here

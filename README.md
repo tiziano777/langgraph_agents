@@ -18,9 +18,8 @@ Each subfolder in the project corresponds to an **independent monolithic agent**
 
 | Folder                   | Agent Name              | Description                                                                 |
 |--------------------------|--------------------------|-----------------------------------------------------------------------------|
-| `langgraph_agents/NER_annotator_agent`   | NER Annotation Agent     | Annotates named entities in raw texts 
+| `langgraph_agents/NER_annotator_agent`   | NER Annotation Agent     | Annotates named entities from raw texts 
 | `langgraph_agents/SPAN_annotator_agent`  | Span Detection Agent     | Identifies relevant spans (e.g., disinformation signals) in documents.     |
-| `langgraph_agents/DataAndLabel_linker_agent`   | Linker Agent             | Aligns noisy raw data (e.g., OCR texts) with pre-annotated labels to produce a clean dataset. |
 
 ---
 
@@ -38,20 +37,12 @@ Each subfolder in the project corresponds to an **independent monolithic agent**
 - Input: Raw unstructured documents.
 - Output: Annotated span intervals with optional reasoning metadata, and also a refinement strategy loop.
 
-### 3. Linking Agent
 
-The agents operate on the following data transformation pattern:
-
-**( X, Y ) → D( X′, Y′ )**
-
-- **X**: Input raw data, often noisy or unstructured (e.g., OCR-extracted text).
-- **Y**: Manually curated labels, following a defined schema.
-- **D(X′, Y′)**: Cleaned, restructured, and prompt-aligned dataset, ready for analysis or training.
-
-This pipeline enables:
+This pipelines enables:
 - Creation of high-quality structured datasets
 - Training of domain-specific classifiers
 - Downstream analytics or integration into ML pipelines
+
 ---
 
 ## ⚙️ Current Capabilities
@@ -59,17 +50,19 @@ This pipeline enables:
 - ✅ Compatible with API-based LLMs (configurable via YAML)
 - ✅ Supports local execution via quantized models (GGUF + C++)
 - ✅ Modular design per agent
-- ✅ Error handling and retry policies
+- ✅ Error handling and retry policies for API calls
 - ✅ Prompt-level control and auditability
 
 ---
 
 ## 🔜 Planned Extensions
 
-- Integration with authenticated enterprise REST endpoints for input/output
+- Integration with authenticated enterprise REST endpoints for input/output messaging
+- integrate advanced mechanism for Human-in-the-loop and MCP integration.
+- Create a GUI in Streamlit in which Human can use easily the provided agentic tasks
 - Workflow orchestration for chaining multiple agents
 - Use this suite as starting of small controlled agents to deploy a verticalized ecosystem to acomplish advanced data engineering tasks.
-- integrate advanced mechanism for Human-in-the-loop and MCP integration.
+
 
 ---
 
@@ -77,7 +70,7 @@ This pipeline enables:
 
 - Each agent reads its configuration from a YAML file in the `/config` folder.
 
-- Prompt files are also externalized for modularity. Each agent have its configuration prompts in YAML files in the `/promnpt` folder. 
+- Prompt files are also externalized for modularity. Each agent have its configuration prompts in YAML files in the `/prompt` folder. 
 
 - Additional configurable PATH can be placed into `/config/config.yml` file, use it to reference your data file names in a correct position way to start to use a specific agent.
 

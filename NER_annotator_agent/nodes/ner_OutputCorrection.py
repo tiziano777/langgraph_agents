@@ -24,7 +24,7 @@ class NerCorrection():
         ngrams = [' '.join(words[i:i + entity_length]) for i in range(len(words) - entity_length + 1)]
         return ngrams
 
-    def clean_entity(self,entity):
+    '''def clean_entity(self,entity):
         """
         Rimuove la punteggiatura solo all'inizio e alla fine dell'entità.
         """
@@ -36,7 +36,8 @@ class NerCorrection():
         entity = re.sub(r'[^\w\d]+$', '', entity)
     
         return entity
-
+'''
+    
     def clean_ner(self, text,ner):
         """
         Corregge le entità in `ner` in base al testo `text`, eliminando duplicati e ripulendo i caratteri speciali.
@@ -44,17 +45,17 @@ class NerCorrection():
         text_words = set(str(text).split())  # Parole nel testo
         corrected_ner = {}
         
-        for category, entities in ner.items(): # for each category key
+        for dict_elem in ner: 
+            best_match=''
+            for category, entity in dict_elem.items():  # Itera su ogni categoria e le sue entità
             
-            unique_entities = set()
-                
-            for entity in entities: # for each entity value
-
+                unique_entities = set()
                 entity_words = set(str(entity).split())  # Parole dell'entità
                 
                 # Controllo se tutte le parole dell'entità sono presenti nel testo
                 if entity_words.issubset(text_words):
-                    unique_entities.add(self.clean_entity(entity))
+                    unique_entities.add(entity)
+                    
                 else:
                     entity_length = len(str(entity).split())  # Conta le parole dell'entità
                     candidates = self.extract_ngram_candidates(text, entity_length)
@@ -67,20 +68,14 @@ class NerCorrection():
                     best_match, score, _ = process.extractOne(str(entity), candidates, scorer=fuzz.ratio)
                     if best_match and score >= self.similarity_threshold:
                         # Normalizza la corrispondenza finale
-                        best_match = self.clean_entity(best_match)  # Pulisce la corrispondenza finale
+                        best_match = best_match # Pulisce la corrispondenza finale
                         unique_entities.add(best_match)  # Sostituisci con il match migliore
             
             if unique_entities:
-                corrected_ner[category] = list(unique_entities)
-        
+                corrected_ner[category] = list(unique_entities)[0]
+                
         return corrected_ner
     
     def __call__(self, state:State):
-        #print('\nOUTPUT ANNOTATOR & INPUT NerCorrector: \n', state.segmented_text, "\n",state.segmented_ner)
-        ners=[]
-        for text,ner in zip(state.segmented_text, state.segmented_ner):
-            text=str(text)
-            corrected_ner_item=self.clean_ner(text,ner)
-            ners.append(corrected_ner_item)
-            
-        return {'segmented_ner': ners}
+        print('\n OUTPUT ANNOTATOR & INPUT NerCorrector: \n', state)
+        return {'corrected_ner': self.clean_ner(state.text,state.ner)}

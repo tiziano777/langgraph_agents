@@ -1,13 +1,16 @@
 import json
 from datetime import datetime
 import pandas as pd
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 class CostAnalyze:
     """
     Classe per il calcolo costi di servizio API.
     """
 
-    def __init__(self,log_file_path: str = "/home/tiziano/annotation_agent/log/token_cost_log.jsonl"):
+    def __init__(self,log_file_path: str = os.environ.get('cost_log')):
         
         self.log_file_path = log_file_path
         

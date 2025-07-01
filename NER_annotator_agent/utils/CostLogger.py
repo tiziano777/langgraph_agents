@@ -1,5 +1,8 @@
 from datetime import datetime
 import json
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 class CostLogger:
     INPUT_COST_PER_MILLION = 0.10     # Gemini Flash input
@@ -8,7 +11,7 @@ class CostLogger:
     def __init__(self,
                  input_cost=INPUT_COST_PER_MILLION,
                  output_cost=OUTPUT_COST_PER_MILLION,
-                 log_file_path: str = "/home/tiziano/annotation_agent/log/token_cost_log.jsonl"):
+                 log_file_path: str = os.environ.get('cost_log')):
         
         self.log_file_path = log_file_path
         self.INPUT_COST_PER_MILLION = input_cost
