@@ -3,6 +3,8 @@ from states.ner_state import State
 from utils.logger_config import setup_logger, handle_exception
 logger = setup_logger(__name__)
 
+### CUSTOM SCHEMA VALIDATOR ###
+
 class Formatter:
     """
     Classe per appiattire una lista di dizionari in un singolo dizionario,

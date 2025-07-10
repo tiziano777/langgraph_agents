@@ -32,8 +32,11 @@ class Preprocessor():
     '''
     
     ### CUSTOM PREPROCESSING ###
+    
     def process_text(self, text: str) -> str:
+        
         ### CUSTOM TEXT PROCESSING WITH NORMALIZATION ###
+        
         try:
             # Conversione minuscola
             text = text.lower()

@@ -47,3 +47,14 @@
 2025-07-10 10:39:19,365 [INFO] Esecuzione pipeline completata per tutti i chunk. Avvio fase di merging.
 2025-07-10 10:39:19,366 [INFO] Merging dei risultati 'ner_refined' completato. Risultato aggregato: {'TenderNumber': 'en', 'TenderYear': '2022', 'TenderCode': 'kt/ms', 'TenderDeadline': '25.03.2022', 'TenderPerson': 'klavdija trunkl', 'TenderTel': '(03) 42 3 35 35', 'TenderFax': '(03) 42 3 37 56', 'TenderType': 'n'}
 2025-07-10 10:39:19,366 [INFO] Risultato finale aggregato: {'TenderNumber': 'en', 'TenderYear': '2022', 'TenderCode': 'kt/ms', 'TenderDeadline': '25.03.2022', 'TenderPerson': 'klavdija trunkl', 'TenderTel': '(03) 42 3 35 35', 'TenderFax': '(03) 42 3 37 56', 'TenderType': 'n'}
+2025-07-10 14:40:15,529 [INFO] Pipeline logger initialized.
+2025-07-10 14:40:15,531 [INFO] Configurazione caricata da config/config_finetuned_mistral7B-0.3.yml
+2025-07-10 14:40:15,531 [ERROR] Errore durante il caricamento del modello spaCy: [E050] Can't find model 'sl_core_news_sm'. It doesn't seem to be a Python package or a valid path to a data directory.. Il chunking per frasi potrebbe non essere ottimale.
+2025-07-10 14:40:16,101 [INFO] Tokenizzatore Hugging Face (Mistral-7B-Instruct-v0.3) caricato con successo.
+2025-07-10 14:40:16,101 [INFO] Inizializzazione del modello LLM Mistral locale...
+2025-07-10 14:40:19,539 [INFO] Modello LLM Mistral locale inizializzato e pronto per l'uso.
+2025-07-10 14:40:19,539 [ERROR] Errore: Modello spaCy non inizializzato. Impossibile effettuare il chunking per frasi.
+2025-07-10 14:40:19,539 [INFO] Testo diviso in 1 chunks.
+2025-07-10 14:40:30,157 [INFO] Esecuzione pipeline completata per tutti i chunk. Avvio fase di merging.
+2025-07-10 14:40:30,157 [INFO] Merging dei risultati 'ner_refined' completato. Risultato aggregato: {'TenderNumber': '26', 'TenderYear': '2022', 'TenderCode': 'kt/ms', 'TenderDeadline': '25.03.2022', 'TenderPerson': 'klavdija trunkl', 'TenderTel': '(03) 42 33 535', 'TenderFax': '(03) 42 33 756', 'TenderType': 'n'}
+2025-07-10 14:40:30,157 [INFO] Risultato finale aggregato: {'TenderNumber': '26', 'TenderYear': '2022', 'TenderCode': 'kt/ms', 'TenderDeadline': '25.03.2022', 'TenderPerson': 'klavdija trunkl', 'TenderTel': '(03) 42 33 535', 'TenderFax': '(03) 42 33 756', 'TenderType': 'n'}
