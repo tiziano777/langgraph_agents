@@ -141,15 +141,14 @@ def run_pipeline(input_path, output_path, checkpoint_path, llm_config, prompts):
                 logger.debug(traceback.format_exc())
                 break
 
-            try:
-                cost_analyzer.daily_cost(threshold=llm_config['daily_cost_threshold'])
-            except RuntimeError as e:
-                logger.error(f"Errore nel controllo costi: {e}")
-                logger.debug(traceback.format_exc())
-                break
+        try:
+            cost_analyzer.daily_cost(threshold=llm_config['daily_cost_threshold'])
+        except RuntimeError as e:
+            logger.error(f"Errore nel controllo costi: {e}")
+            logger.debug(traceback.format_exc())
 
         logger.info("Pipeline completata.")
 
     except Exception as e:
         logger.critical(f"Errore critico nella pipeline: {e}")
-        logger.debug(traceback.format_exc())
+        print(traceback.format_exc())

@@ -1,3 +1,41 @@
+# --- Configurazione Generale ---
+dataset_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_tender_ner_dataset.jsonl"
+output_test_file_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_tender_ner_test_split.jsonl"
+model_checkpoint_dir: "/home/tiziano/langgraph_agents/Mistral_Finetuning/fine_tuned_mistral_ner_model_v1.3" 
+
+# --- Configurazione Modello ---
+model:
+  name: "mistralai/Mistral-7B-Instruct-v0.3"
+  max_seq_length: 4096
+  dtype: null # Rappresenta None in YAML
+  load_in_4bit: false # Rappresenta False in YAML
+
+# --- Configurazione Inferenza ---
+inference:
+  output_results_file: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/inference_results.jsonl"
+  generation_params:
+    max_new_tokens: 512
+    do_sample: true
+    temperature: 0.1
+    top_p: 0.5
+    top_k: 10
+    num_beams: 1 # Mantenere 1 per campionamento, no beam search
+
+# --- Configurazione PEFT/LoRA (se usi Unsloth) ---
+peft:
+  r: 16
+  target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+  lora_alpha: 16
+  lora_dropout: 0.0 # Float
+  bias: "none"
+  use_gradient_checkpointing: "unsloth"
+  random_state: 42
+
+# --- Prompt Template (può essere un'unica stringa YAML multiline) ---
+
+START_INSTRUCTION_TOKEN: <s>[INST]
+END_INSTRUCTION_TOKEN: "[/INST]"
+
 TENDER_PROMPT: >
  <SCENARIO>
   You are an NER agent for Slovenian tender documents (noisy, OCR-derived text).
@@ -110,97 +148,21 @@ TENDER_PROMPT: >
   ]
   </EXAMPLES>
 
-TENDER_REFINEMENT_PROMPT: >
-  <s>[INST]
-  <SCENARIO>
-  Given a text and a JSON array (NER result), correct the JSON array to comply with the schema.
-  Drop any fields not defined in the schema.
-  Drop objects containing fields with empty string, null, 'N/A', or 'not found' values.
-  </SCENARIO>
-
-  <SCHEMA>
-  Tender ID Fields:
-  - TenderType in {n,m,x} chars
-  - TenderNumber = int str from '000' to '999'
-  - TenderCode = 'aa/bb' or 'aaa/bb' or only 'aa', regex: ^[a-z]{2,3}(/[a-z]{2})?$
-  - TenderYear 'YYYY' 
-
-  TENDER Fields:
-  - TenderOrg
-  - TenderTel
-  - TenderFax
-  - TenderDeadline = gg.mm.aaaa
-  - TenderPerson
-  </SCHEMA>
-
-  <FORMAT>
-  The same as JSON array in input.
-  </FORMAT>
-
-  <EXAMPLES>
-  Example 1 (Correction: invalid date, string to int, invalid type, drop invalid/empty values)
-  Input Text:
-  splosna bolnisnica celje oblakova ulica 5 3000 celje tel (08) 42 33000 fax (08) 42 33.757 postopek en n 139 2023 ms povabilo k oddajt ponudbe vabimo vas k oddaji ponudbe za predmet en pametne kljuke za oddelene lekarne opis stanja
-  Input ner:
-  [
-  {"TenderOrg": "splosna bolnisnica celje"},
-  {"TenderTel": "(08) 42 33000"},
-  {"TenderFax": "(08) 42 33.757"},
-  {"TenderNumber": "139"},
-  {"TenderYear": "2023"},
-  {"TenderCode": "ms"},
-  {"TenderDeadline": "not present"},
-  {"TenderPerson": null },
-  {"GoodsServices": "kljuke za oddelene"}
-  ]
-  Output:
-  [
-  {"TenderOrg": "splosna bolnisnica celje"},
-  {"TenderTel": "(08) 42 33000"},
-  {"TenderFax": "(08) 42 33 757"},
-  {"TenderProcedureNumber": "139"},
-  {"TenderYear": "2023"},
-  {"TenderProcedureCode": "ms"}
-  ]
-
-  Example 2 (No correction needed)
-  Input:
-  en n 123 2022 sp/hv rok za oddajo 10. 07. 2024 kontaktna oseba ana.novak odgovorna oseba ana.novak predmet javnega narocila: dobava pisarniskega materiala tonerjev in pisal
-  Input ner:
-  [
-  { "TenderNumber": "123" },
-  { "TenderYear": "2022" },
-  { "TenderCode": "sp/hv" },
-  { "TenderDeadline": "10.07.2024" },
-  { "TenderPerson": "ana novak" },
-  { "TenderType": "n" }
-  ]
-  Output:
-  [
-  { "TenderNumber": "123" },
-  { "TenderYear": "2022" },
-  { "TenderCode": "sp/hv" },
-  { "TenderDeadline": "10.07.2024" },
-  { "TenderPerson": "ana novak" },
-  { "TenderType": "n" }
-  ]
-
-  Example 3 (Drop bad values, and invalid value)
-  Input Text:
-  kontaktna oseba janez.kranj rok za oddajo 01.01.2024
-  Input ner:
-  [
-  {"TenderPerson": "janez kranj"},
-  {"TenderDeadline": "01.01.2024"},
-  {"TenderOrg": ""},
-  {"TenderTel": "N/A"},
-  {"TenderLocation": "Ljubljana"},
-  {"TenderType": "Z"}
-  ]
-  Output:
-  [
-  {"TenderPerson": "janez kranj"},
-  {"TenderDeadline": "01.01.2024"}
-  ]
-
-  Input Text:
+trainer_args:
+  output_dir: "models" # folder to store model checkpoints
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 4
+  num_train_epochs: 6 # TRAINING EPOCHS LENGTH
+  learning_rate: 0.0002 
+  eval_strategy: "steps"
+  eval_steps: 10 
+  save_strategy: "steps"
+  save_steps: 10
+  load_best_model_at_end: true #
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false 
+  warmup_steps: 5
+  logging_steps: 1
+  optim: "adamw_torch"
+  seed: 3407
+  do_eval: true #

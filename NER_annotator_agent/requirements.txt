@@ -1,5 +1,8 @@
 llama-cpp-python
+accelerate
+sentencepiece
 dotenv
+torch
 pandas
 spacy
 pydantic
@@ -10,10 +13,12 @@ langgraph
 langchain
 langchain_community
 google-generativeai
+langchain-huggingface
 langchain_google_genai
 transformers
 datasets
 streamlit
+huggingface
 
 #https://python.langchain.com/docs/integrations/llms/llamacpp/
 #https://python.langchain.com/api_reference/google_genai/chat_models/langchain_google_genai.chat_models.ChatGoogleGenerativeAI.html

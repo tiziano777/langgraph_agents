@@ -44,6 +44,7 @@ class Annotator():
         self.input_context = input_context
         self.error_handler = ErrorHandler()
         self.end_prompt= "\nOutput:\n"
+        self.end_instruction_token='[/INST]'
 
     def annotate(self, state: State):
         """
@@ -55,12 +56,18 @@ class Annotator():
         """
         
         try:
-            call=ErrorHandler.invoke_with_retry(llm=self.llm, prompt=str(self.system_prompt+'\n'+state.text+ self.end_prompt))
-            state.ner=self.extract_json(call.content)
-            log = call.usage_metadata
+            # Utilizziamo rest_invoke_with_retry invece di gemini_invoke_with_retry
+            # Poiché il client LLM aziendale non gestisce i token,
+            # non c'è bisogno di loggare usage_metadata.
+            call_response = self.error_handler.rest_invoke_with_retry(
+                llm=self.llm, 
+                prompt=str(self.system_prompt + '\n' + state.text + self.end_prompt + self.end_instruction_token)
+            )
+            state.ner = self.extract_json(call_response)
             
-            state.input_tokens +=log["input_tokens"]
-            state.output_tokens += log["output_tokens"]
+            # Rimosse le righe relative al log dei token, dato che non ci sono piu API constraints
+            # state.input_tokens += log["input_tokens"]
+            # state.output_tokens += log["output_tokens"]
 
         except Exception as e:
             return handle_exception(state, "Exception in llm.invoke", e)
@@ -78,19 +85,20 @@ class Annotator():
             parsed_json = json.loads(repaired_text)
 
             if not isinstance(parsed_json, list):
+                print(traceback.format_exc())
                 raise ValueError("Parsed JSON is not a list")
 
             return parsed_json
 
         except Exception as e:
             return e
-     
-    def __call__(self, text: State):
+    
+    def __call__(self, state: State):
         """
         Metodo principale per elaborare il testo di input.
 
         :param text: Il testo da elaborare.
         :return: Un dizionario Python con l'output JSON.
         """
-        print('\n INPUT Annotator: \n\n', text)
-        return self.annotate(text)
+        print('\n INPUT Annotator: \n\n', state.text)
+        return self.annotate(state)

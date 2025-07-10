@@ -45,6 +45,7 @@ class Annotator():
         """
         self.system_prompt = system_prompt
         self.output_prompt= "\nOutput:\n"
+        self.end_instruction_token='[/INST]'
         self.max_sentence_length = max_sentence_length
         self.llm = llm
 
@@ -62,7 +63,7 @@ class Annotator():
         text=self.process_text(state.text)
         ner=[]
 
-        ner.append(self.extract_json(self.llm.invoke(self.system_prompt+'\n'+text+ self.output_prompt)))
+        ner.append(self.extract_json(self.llm.invoke(self.system_prompt+'\n'+text+ self.output_prompt+ self.end_instruction_token)))
 
         ### END CUSTOM LOGIC ###
             
@@ -130,12 +131,12 @@ class Annotator():
         except Exception as e:
             raise e
      
-    def __call__(self, text: State):
+    def __call__(self, state: State):
         """
         Metodo principale per elaborare il testo di input.
 
         :param text: Il testo da elaborare.
         :return: Un dizionario Python con l'output JSON.
         """
-        print('INPUT Annotator: ', text)
-        return self.annotate(text)
+        print('INPUT Annotator: ', state.text)
+        return self.annotate(state)

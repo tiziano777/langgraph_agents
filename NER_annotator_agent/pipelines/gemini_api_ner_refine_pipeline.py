@@ -3,7 +3,6 @@ import os
 import yaml
 import logging
 import traceback
-from datetime import datetime
 
 from utils.CostAnalyze import CostAnalyze
 from utils.CostLogger import CostLogger
@@ -13,11 +12,10 @@ from langgraph.graph import START, END, StateGraph
 
 from states.ner_state import State
 
-from nodes.ner_Preprocessing import Preprocessor
-from nodes.ner_apiAnnotator import Annotator
-from nodes.ner_OutputCorrection import NerCorrection
-from nodes.ner_SpanIdx import NerSpanFormat
-from nodes.ner_StreamWriter import StreamWriter
+from nodes.preprocessing.ner_Preprocessing import Preprocessor
+from nodes.annotators.ner_geminiApiAnnotator import Annotator
+from nodes.evaluators.ner_GeminiApiRefiner import AnnotatorRefiner
+from nodes.writers.ner_JsonLineWriter import StreamWriter
 
 # === Setup Logging ===
 log_dir = "log"
@@ -34,28 +32,26 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
-
-def create_pipeline(preprocessor: Preprocessor,annotator: Annotator, ner_correction: NerCorrection, ner_span_format: NerSpanFormat, writer: StreamWriter):
+    
+def create_pipeline(preprocessor: Preprocessor,annotator: Annotator, ner_span_refiner: AnnotatorRefiner, writer: StreamWriter):
 
     workflow = StateGraph(State)
     workflow.add_node("preprocessor_node", preprocessor)
     workflow.add_node("annotator_node", annotator)
-    workflow.add_node("ner_correction_node", ner_correction)
-    workflow.add_node("ner_span_node", ner_span_format)
+    workflow.add_node("span_refiner_node", ner_span_refiner)
     workflow.add_node("writer_node", writer)
 
     workflow.add_edge(START, "preprocessor_node")
     workflow.add_edge("preprocessor_node", "annotator_node")
-    workflow.add_edge("annotator_node", "ner_correction_node")
-    workflow.add_edge("ner_correction_node", "ner_span_node")
-    workflow.add_edge("ner_span_node", "writer_node")
+    workflow.add_edge("annotator_node", "span_refiner_node")
+    workflow.add_edge("span_refiner_node", "writer_node")
     workflow.add_edge("writer_node", END)
 
     pipeline = workflow.compile()
 
     try:
         graphImage = pipeline.get_graph().draw_mermaid_png()
-        with open("graph.png", "wb") as f:
+        with open("images/gemini_api_llm_ner_refine_pipeline.png", "wb") as f:
             f.write(graphImage)
         logger.info("Salvata immagine del grafo in graph.png")
     except Exception as e:
@@ -69,7 +65,7 @@ def run_pipeline(input_path, output_path, checkpoint_path, base_prompt, refineme
     # Inizializza il modello LLM
     llm = ChatGoogleGenerativeAI(
         model=llm_config["model_name"],
-        google_api_key=llm_config["api_key"],
+        google_api_key=llm_config["gemini_api_key"],
         temperature=llm_config["temperature"],
         max_output_tokens=llm_config["max_output_tokens"],
         top_p=llm_config["top_p"],
@@ -78,13 +74,12 @@ def run_pipeline(input_path, output_path, checkpoint_path, base_prompt, refineme
 
     preprocessor= Preprocessor()
     annotator = Annotator(llm=llm, prompt=base_prompt, input_context=llm_config['n_ctx'])
-    ner_correction = NerCorrection(similarity_threshold=79)
-    span_format = NerSpanFormat()
+    refiner = AnnotatorRefiner(llm=llm, prompt=refinement_prompt)
     writer = StreamWriter(output_file=output_path)
     cost_analyzer = CostAnalyze()
     cost_logger = CostLogger()
     
-    graph = create_pipeline(preprocessor, annotator, ner_correction, span_format, writer)
+    graph = create_pipeline(preprocessor, annotator, refiner, writer)
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     os.makedirs(os.path.dirname(checkpoint_path), exist_ok=True)
@@ -114,15 +109,14 @@ def run_pipeline(input_path, output_path, checkpoint_path, base_prompt, refineme
 
     for entry in range(checkpoint, len(dataset)):
         text = dataset[entry].get("text", "")
-        id = dataset[entry].get("id", "")
-        chunk = dataset[entry].get("chunk", None)
+
             
         if not text:
             logger.warning(f"Testo vuoto alla riga {entry}, saltato.")
             continue
 
         try:
-            state = graph.invoke({'text': text, 'chunk_id': chunk, 'id': id})
+            state = graph.invoke({'text': text})
 
             if state['error_status'] is not None:
                 logger.warning(f"Errore nello stato a checkpoint {entry}: {state['error_status']}")

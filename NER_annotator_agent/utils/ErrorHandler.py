@@ -1,64 +1,67 @@
-
 import traceback
 import time
+import requests
 
 class ErrorHandler:
-    
+
     def __init__(self):
         pass
-    
+
     def extract_retry_delay_from_error(self, e) -> float | None:
         """
-        Estrae il retry delay da un'eccezione ResourceExhausted o simile.
-
-        Presuppone che l'eccezione `e` abbia un attributo `details`, 
-        dove nella posizione 2 (convenzionalmente) è presente un dizionario
-        con 'retry_delay' espresso come {'seconds': int}.
+        Estrae il retry delay da un'eccezione ResourceExhausted di Gemini.
         """
         try:
-            if hasattr(e, 'code') and e.code == 429 and hasattr(e, 'details') and hasattr(e.details[2], 'retry_delay') and hasattr(e.details[2].retry_delay, 'seconds'):
-                # Estrarre campo "retry_delay" se disponibile
-                delay = e.details[2].retry_delay.seconds
-                
-                return float(delay)
-            else:
-                print(f"[extract_retry_delay_from_error] Errore non gestito, retry delay.seconds: {e}")
+            if hasattr(e, 'code') and e.code == 429 and hasattr(e, 'details'):
+                retry_info = e.details[2].retry_delay
+                return float(retry_info.seconds)
         except Exception as ex:
-            print(f"[extract_retry_delay_from_error] Errore durante l'estrazione del retry delay: {ex}")
-        
+            print(f"[extract_retry_delay_from_error] Errore: {ex}")
         return None
 
-    def invoke_with_retry(self, llm, prompt, max_retries=5, retry_count=0):
+    def gemini_invoke_with_retry(self, llm, prompt, max_retries=5, retry_count=0):
         """
-        Richiama `llm.invoke(prompt)` gestendo automaticamente rate-limit con retry ricorsivo.
-        
-        Se il codice d'errore è 429, estrae `retry_delay` e attende.
-        In caso contrario, stampa errore ed esce.
-
-        :param llm: Oggetto LLM (LangChain-compatible).
-        :param prompt: Prompt da inviare.
-        :param max_retries: Numero massimo di retry.
-        :param retry_count: Contatore di retry (usato internamente per ricorsione).
-        :return: Risultato di `llm.invoke(prompt)`.
+        Retry per Gemini con gestione del codice 429 e retry_delay.
         """
         try:
             return llm.invoke(prompt)
-
+        
         except Exception as e:
             if hasattr(e, "code") and e.code == 429:
                 delay = self.extract_retry_delay_from_error(e)
-                if delay is not None:
-                    print(f"[invoke_with_retry] Rate limit: attendo {delay:.2f} secondi (retry #{retry_count + 1})")
+                if delay:
+                    print(f"[gemini_invoke_with_retry] Rate limit: attendo {delay:.2f}s (retry #{retry_count + 1})")
                     time.sleep(delay)
                     if retry_count < max_retries:
-                        return self.invoke_with_retry(llm, prompt, max_retries=max_retries, retry_count=retry_count + 1)
-                    else:
-                        print("[invoke_with_retry] Numero massimo di retry superato. Esco.")
-                        exit(1)
+                        return self.gemini_invoke_with_retry(llm, prompt, max_retries, retry_count + 1)
+                    raise RuntimeError("Max retries exceeded (Gemini).")
                 else:
-                    print("[invoke_with_retry] Retry delay non trovato nell'errore 429. Esco.")
-                    exit(1)
+                    raise RuntimeError("Retry delay non disponibile in errore 429 (Gemini).")
             else:
-                print(f"[invoke_with_retry] Errore non gestito: {e}")
                 traceback.print_exc()
-                exit(1)
+                raise RuntimeError(f"Errore Gemini: {e}")
+
+    def rest_invoke_with_retry(self, llm, prompt, max_retries=5, retry_count=0):
+        """
+        Retry per endpoint REST che restituisce { 'response': ..., 'success': true/false }.
+        """
+        try:
+            result = llm.invoke(prompt)
+
+            if isinstance(result, dict) and result.get("success") is True:
+                return result["response"]
+            elif isinstance(result, dict) and result.get("success") is False:
+                print(f"[rest_invoke_with_retry] Tentativo fallito (retry #{retry_count + 1})")
+                if retry_count < max_retries:
+                    time.sleep(1)  # backoff statico, puoi renderlo esponenziale
+                    return self.rest_invoke_with_retry(llm, prompt, max_retries, retry_count + 1)
+                raise RuntimeError("Max retries exceeded (REST).")
+            else:
+                raise RuntimeError(f"Formato risposta non riconosciuto: {result}")
+
+        except requests.exceptions.RequestException as e:
+            traceback.print_exc()
+            raise RuntimeError(f"Errore HTTP REST: {e}")
+        except Exception as e:
+            traceback.print_exc()
+            raise RuntimeError(f"Errore generico REST: {e}")

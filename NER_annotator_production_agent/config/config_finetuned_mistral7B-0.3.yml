@@ -1,3 +1,30 @@
+# Nome del modello Hugging Face da caricare.
+# Assicurati che questo modello sia disponibile localmente o scaricabile.
+model_name: /home/tiziano/langgraph_agents/NER_annotator_agent/local_llm/fine_tuned_mistral_ner_model_v1.3
+
+# Parametri di generazione del modello
+# *** MODIFICHE SUGGERITE QUI ***
+temperature: 0.05           # Abbassato drasticamente per un output quasi deterministico.
+max_output_tokens: 600     # Numero massimo di nuovi token da generare per risposta (puoi aumentarlo se il JSON è molto lungo).
+top_p: 0.5
+top_k: 10
+do_sample: False           # <<< CRUCIALE: Impostato a False per un output deterministico (greedy decoding).
+repetition_penalty: 1.11   # Valore tipico, puoi adattarlo.
+# num_beams: 1           # Non necessario se do_sample è False e non usi beam search.
+
+# Tipo di dato per il caricamento del modello (es. "bfloat16", "float16", "float32")
+# Assicurati che sia compatibile con la tua GPU e il modello.
+torch_dtype: "bfloat16"
+
+# Aggiungi i token di istruzione e il contenuto del prompt nel config loader per il MistralLoader
+START_INSTRUCTION_TOKEN: "<s>[INST]"
+END_INSTRUCTION_TOKEN: "[/INST]"
+
+
+# Dimensione del contesto (non direttamente usato da HuggingFacePipeline per il controllo del contesto LLM,
+# ma può essere usato dalla tua logica Preprocessor o per documentazione)
+n_ctx: 4096
+
 TENDER_PROMPT: >
  <SCENARIO>
   You are an NER agent for Slovenian tender documents (noisy, OCR-derived text).
@@ -109,98 +136,3 @@ TENDER_PROMPT: >
   { "TenderPerson": "luka zajc" },
   ]
   </EXAMPLES>
-
-TENDER_REFINEMENT_PROMPT: >
-  <s>[INST]
-  <SCENARIO>
-  Given a text and a JSON array (NER result), correct the JSON array to comply with the schema.
-  Drop any fields not defined in the schema.
-  Drop objects containing fields with empty string, null, 'N/A', or 'not found' values.
-  </SCENARIO>
-
-  <SCHEMA>
-  Tender ID Fields:
-  - TenderType in {n,m,x} chars
-  - TenderNumber = int str from '000' to '999'
-  - TenderCode = 'aa/bb' or 'aaa/bb' or only 'aa', regex: ^[a-z]{2,3}(/[a-z]{2})?$
-  - TenderYear 'YYYY' 
-
-  TENDER Fields:
-  - TenderOrg
-  - TenderTel
-  - TenderFax
-  - TenderDeadline = gg.mm.aaaa
-  - TenderPerson
-  </SCHEMA>
-
-  <FORMAT>
-  The same as JSON array in input.
-  </FORMAT>
-
-  <EXAMPLES>
-  Example 1 (Correction: invalid date, string to int, invalid type, drop invalid/empty values)
-  Input Text:
-  splosna bolnisnica celje oblakova ulica 5 3000 celje tel (08) 42 33000 fax (08) 42 33.757 postopek en n 139 2023 ms povabilo k oddajt ponudbe vabimo vas k oddaji ponudbe za predmet en pametne kljuke za oddelene lekarne opis stanja
-  Input ner:
-  [
-  {"TenderOrg": "splosna bolnisnica celje"},
-  {"TenderTel": "(08) 42 33000"},
-  {"TenderFax": "(08) 42 33.757"},
-  {"TenderNumber": "139"},
-  {"TenderYear": "2023"},
-  {"TenderCode": "ms"},
-  {"TenderDeadline": "not present"},
-  {"TenderPerson": null },
-  {"GoodsServices": "kljuke za oddelene"}
-  ]
-  Output:
-  [
-  {"TenderOrg": "splosna bolnisnica celje"},
-  {"TenderTel": "(08) 42 33000"},
-  {"TenderFax": "(08) 42 33 757"},
-  {"TenderProcedureNumber": "139"},
-  {"TenderYear": "2023"},
-  {"TenderProcedureCode": "ms"}
-  ]
-
-  Example 2 (No correction needed)
-  Input:
-  en n 123 2022 sp/hv rok za oddajo 10. 07. 2024 kontaktna oseba ana.novak odgovorna oseba ana.novak predmet javnega narocila: dobava pisarniskega materiala tonerjev in pisal
-  Input ner:
-  [
-  { "TenderNumber": "123" },
-  { "TenderYear": "2022" },
-  { "TenderCode": "sp/hv" },
-  { "TenderDeadline": "10.07.2024" },
-  { "TenderPerson": "ana novak" },
-  { "TenderType": "n" }
-  ]
-  Output:
-  [
-  { "TenderNumber": "123" },
-  { "TenderYear": "2022" },
-  { "TenderCode": "sp/hv" },
-  { "TenderDeadline": "10.07.2024" },
-  { "TenderPerson": "ana novak" },
-  { "TenderType": "n" }
-  ]
-
-  Example 3 (Drop bad values, and invalid value)
-  Input Text:
-  kontaktna oseba janez.kranj rok za oddajo 01.01.2024
-  Input ner:
-  [
-  {"TenderPerson": "janez kranj"},
-  {"TenderDeadline": "01.01.2024"},
-  {"TenderOrg": ""},
-  {"TenderTel": "N/A"},
-  {"TenderLocation": "Ljubljana"},
-  {"TenderType": "Z"}
-  ]
-  Output:
-  [
-  {"TenderPerson": "janez kranj"},
-  {"TenderDeadline": "01.01.2024"}
-  ]
-
-  Input Text:

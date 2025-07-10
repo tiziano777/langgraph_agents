@@ -1,0 +1,16 @@
+accelerate
+sentencepiece
+dotenv
+torch
+pandas
+spacy
+pydantic
+typing-extensions
+json_repair
+langgraph
+langchain
+langchain_community
+langchain-huggingface
+transformers
+datasets
+huggingface

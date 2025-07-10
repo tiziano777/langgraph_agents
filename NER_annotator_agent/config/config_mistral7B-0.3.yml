@@ -1,0 +1,20 @@
+# Nome del modello Hugging Face da caricare.
+# Assicurati che questo modello sia disponibile localmente o scaricabile.
+model_name: "mistralai/Mistral-7B-Instruct-v0.3"
+
+# Parametri di generazione del modello
+# *** MODIFICHE SUGGERITE QUI ***
+temperature: 0.2           # Abbassato drasticamente per un output quasi deterministico.
+max_output_tokens: 500       # Numero massimo di nuovi token da generare per risposta (puoi aumentarlo se il JSON è molto lungo).
+top_p: 0.9                   
+top_k: 8                     
+do_sample: True             # *** CRUCIALE: Impostato a False per un output deterministico (greedy decoding). ***
+repetition_penalty: 1.1      # Resettato a 1.0 per evitare di penalizzare la struttura ripetitiva del JSON (es. parentesi).
+
+# Tipo di dato per il caricamento del modello (es. "bfloat16", "float16", "float32")
+# Assicurati che sia compatibile con la tua GPU e il modello.
+torch_dtype: "bfloat16"
+
+# Dimensione del contesto (non direttamente usato da HuggingFacePipeline per il controllo del contesto LLM,
+# ma può essere usato dalla tua logica Preprocessor o per documentazione)
+n_ctx: 4096

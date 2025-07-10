@@ -1,0 +1,49 @@
+2025-07-10 10:13:55,423 [INFO] Pipeline logger initialized.
+2025-07-10 10:13:55,425 [INFO] Configurazione caricata da config/config_finetuned_mistral7B-0.3.yml
+2025-07-10 10:13:55,750 [INFO] Modello spaCy caricato con successo per il chunking.
+2025-07-10 10:13:56,155 [INFO] Tokenizzatore Hugging Face (Mistral-7B-Instruct-v0.3) caricato con successo.
+2025-07-10 10:13:56,155 [INFO] Inizializzazione del modello LLM Mistral locale...
+2025-07-10 10:13:59,471 [INFO] Modello LLM Mistral locale inizializzato e pronto per l'uso.
+2025-07-10 10:13:59,555 [INFO] Salvata immagine del grafo in images/local_mistral_llm_ner_refine_pipeline.png
+2025-07-10 10:13:59,592 [INFO] Testo diviso in 1 chunks.
+2025-07-10 10:14:10,319 [INFO] Esecuzione pipeline completata per tutti i chunk. Avvio fase di merging.
+2025-07-10 10:14:10,319 [INFO] Merging dei risultati 'ner_refined' completato. Risultato aggregato: {'TenderNumber': 'en', 'TenderYear': '2022', 'TenderCode': 'kt/ms', 'TenderDeadline': '25.03.2022', 'TenderPerson': 'klavdija trunkl', 'TenderTel': '(03) 42 3 35 35', 'TenderFax': '(03) 42 3 37 56', 'TenderType': 'n'}
+2025-07-10 10:14:10,319 [INFO] Risultato finale aggregato: {'TenderNumber': 'en', 'TenderYear': '2022', 'TenderCode': 'kt/ms', 'TenderDeadline': '25.03.2022', 'TenderPerson': 'klavdija trunkl', 'TenderTel': '(03) 42 3 35 35', 'TenderFax': '(03) 42 3 37 56', 'TenderType': 'n'}
+2025-07-10 10:22:00,991 [INFO] Pipeline logger initialized.
+2025-07-10 10:22:00,994 [INFO] Configurazione caricata da config/config_finetuned_mistral7B-0.3.yml
+2025-07-10 10:22:01,317 [INFO] Modello spaCy caricato con successo per il chunking.
+2025-07-10 10:22:01,719 [INFO] Tokenizzatore Hugging Face (Mistral-7B-Instruct-v0.3) caricato con successo.
+2025-07-10 10:22:01,719 [INFO] Inizializzazione del modello LLM Mistral locale...
+2025-07-10 10:22:02,898 [INFO] Modello LLM Mistral locale inizializzato e pronto per l'uso.
+2025-07-10 10:22:02,977 [INFO] Salvata immagine del grafo in images/local_mistral_llm_ner_refine_pipeline.png
+2025-07-10 10:22:03,010 [INFO] Testo diviso in 1 chunks.
+2025-07-10 10:34:32,389 [INFO] Pipeline logger initialized.
+2025-07-10 10:34:32,391 [INFO] Configurazione caricata da config/config_finetuned_mistral7B-0.3.yml
+2025-07-10 10:34:32,714 [INFO] Modello spaCy caricato con successo per il chunking.
+2025-07-10 10:34:33,134 [INFO] Tokenizzatore Hugging Face (Mistral-7B-Instruct-v0.3) caricato con successo.
+2025-07-10 10:34:33,134 [INFO] Inizializzazione del modello LLM Mistral locale...
+2025-07-10 10:34:34,297 [INFO] Modello LLM Mistral locale inizializzato e pronto per l'uso.
+2025-07-10 10:34:34,379 [INFO] Salvata immagine del grafo in images/local_mistral_llm_ner_refine_pipeline.png
+2025-07-10 10:34:34,412 [INFO] Testo diviso in 1 chunks.
+2025-07-10 10:36:56,017 [INFO] Pipeline logger initialized.
+2025-07-10 10:36:56,019 [INFO] Configurazione caricata da config/config_finetuned_mistral7B-0.3.yml
+2025-07-10 10:36:56,341 [INFO] Modello spaCy caricato con successo per il chunking.
+2025-07-10 10:36:56,742 [INFO] Tokenizzatore Hugging Face (Mistral-7B-Instruct-v0.3) caricato con successo.
+2025-07-10 10:36:56,742 [INFO] Inizializzazione del modello LLM Mistral locale...
+2025-07-10 10:36:59,825 [INFO] Modello LLM Mistral locale inizializzato e pronto per l'uso.
+2025-07-10 10:36:59,875 [INFO] Salvata immagine del grafo in images/local_mistral_llm_ner_refine_pipeline.png
+2025-07-10 10:36:59,906 [INFO] Testo diviso in 1 chunks.
+2025-07-10 10:37:10,638 [INFO] Esecuzione pipeline completata per tutti i chunk. Avvio fase di merging.
+2025-07-10 10:37:10,638 [INFO] Merging dei risultati 'ner_refined' completato. Risultato aggregato: {'TenderNumber': 'en', 'TenderYear': '2022', 'TenderCode': 'kt/ms', 'TenderDeadline': '25.03.2022', 'TenderPerson': 'klavdija trunkl', 'TenderTel': '(03) 42 3 35 35', 'TenderFax': '(03) 42 3 37 56', 'TenderType': 'n'}
+2025-07-10 10:37:10,638 [INFO] Risultato finale aggregato: {'TenderNumber': 'en', 'TenderYear': '2022', 'TenderCode': 'kt/ms', 'TenderDeadline': '25.03.2022', 'TenderPerson': 'klavdija trunkl', 'TenderTel': '(03) 42 3 35 35', 'TenderFax': '(03) 42 3 37 56', 'TenderType': 'n'}
+2025-07-10 10:39:04,723 [INFO] Pipeline logger initialized.
+2025-07-10 10:39:04,725 [INFO] Configurazione caricata da config/config_finetuned_mistral7B-0.3.yml
+2025-07-10 10:39:05,069 [INFO] Modello spaCy caricato con successo per il chunking.
+2025-07-10 10:39:05,483 [INFO] Tokenizzatore Hugging Face (Mistral-7B-Instruct-v0.3) caricato con successo.
+2025-07-10 10:39:05,483 [INFO] Inizializzazione del modello LLM Mistral locale...
+2025-07-10 10:39:08,533 [INFO] Modello LLM Mistral locale inizializzato e pronto per l'uso.
+2025-07-10 10:39:08,568 [INFO] Salvata immagine del grafo in images/local_mistral_llm_ner_refine_pipeline.png
+2025-07-10 10:39:08,595 [INFO] Testo diviso in 1 chunks.
+2025-07-10 10:39:19,365 [INFO] Esecuzione pipeline completata per tutti i chunk. Avvio fase di merging.
+2025-07-10 10:39:19,366 [INFO] Merging dei risultati 'ner_refined' completato. Risultato aggregato: {'TenderNumber': 'en', 'TenderYear': '2022', 'TenderCode': 'kt/ms', 'TenderDeadline': '25.03.2022', 'TenderPerson': 'klavdija trunkl', 'TenderTel': '(03) 42 3 35 35', 'TenderFax': '(03) 42 3 37 56', 'TenderType': 'n'}
+2025-07-10 10:39:19,366 [INFO] Risultato finale aggregato: {'TenderNumber': 'en', 'TenderYear': '2022', 'TenderCode': 'kt/ms', 'TenderDeadline': '25.03.2022', 'TenderPerson': 'klavdija trunkl', 'TenderTel': '(03) 42 3 35 35', 'TenderFax': '(03) 42 3 37 56', 'TenderType': 'n'}
