@@ -204,3 +204,211 @@ TENDER_REFINEMENT_PROMPT: >
   ]
 
   Input Text:
+
+ORDER_PROMPT: >
+  <SCENARIO>
+  You are an NER agent for Slovenian order documents (noisy, OCR-derived text).
+  Output a JSON array per the schema.
+  </SCENARIO>
+
+  <RULES>
+  Adapt values for OCR errors, correcting them to the specified format where applicable.
+  Skip missing entities; do not hallucinate.
+  Note chunk index:
+  - chunk_id = 0: usually resides above the totality of the fields.
+  - chunk_id = 1: it contains partial or redundant data, useful to recover missing info.
+  - Avoid repetitive occurrences.
+  </RULES>
+
+  <SCHEMA>
+  Order Fields:
+  - OrderID: no static format, usually a sequence of chars and numbers, see examples.
+  - OrderCompanyName: free-text organization name.
+  - OrderCompanyAddress: free-text address block (retain structure; normalize special characters).
+  - OrderTaxNumber: tax ID, matching regex: ^si[0-9]{8,10}$ (e.g. "si70365016").
+  - OrderDate: date format gg.mm.aaaa
+  - OrderPerson: free-text person name.
+  </SCHEMA>
+
+  <FORMAT>
+  Output Format: List[Dict[str, str]] or empty list.
+  Return:
+  [] if no relevant entity is found.
+  Otherwise, return a list of dictionaries:
+  [ ...
+    { "OrderCompanyName": "..." },
+    { "OrderCompanyAddress": "..." },
+    { "OrderTaxNumber": "..." },
+    ...
+  ]
+  Only include the fields found in the input text.
+  </FORMAT>
+
+  <EXAMPLES>
+  example 1:
+  input:
+  chunk_id: 0
+  stran 1 od 1 ly splosna bolnisnica celje datum 17.10.2023 us lekarna - nabava st. narocila 7208739/2023 narocilnica dostava blaga ddp splosna bolnisnica celje razlozeno v prostore lekarne narocnika dobavitelj ime k medistar d.o.o. ime splosna bolnisnica celje naslov naslov oblakova ulica 5 kraj kraj celje telefon (03) 423 31 25 davcna st. si42119022 stran 1 od 1 splosna bolnisnica celje datum 21.08.2023 st. narocila 7206838/2023 dobavitelj medistar d.o.o. nasiov oblakova ulica 5 kraj celje davcna st. si42119022 odobril v.d. predstojnika lekarne sandra drljic kopranovic jure bracun mag. farm.
+  output:
+  [
+    {"OrderID": "7208739/2023"},
+    { "OrderID": "7206838/2023" },
+    { "OrderCompanyName": "splosna bolnisnica celje" },
+    { "OrderCompanyAddress": "oblakova ulica 5, celje" },
+    { "OrderDate": "17.10.2023" },
+    { "OrderDate": "21.08.2023" },
+    { "OrderPerson": "sandra drljic kopranovic" },
+    { "OrderPerson": "jure bracun" },
+    { "OrderTaxNumber": "si42119022" }
+  ]
+
+  example 2:
+  input:
+  chunk_id: 1
+  datum 10.02.2022 splosna bolnisnica celje oblakova ulica 5 3000 celje slovenija id za ddv si42119022 maticna st. 5064716000 trr splosna bolnisnica celje
+  output:
+  [
+    { "OrderCompanyName": "splosna bolnisnica celje" },
+    { "OrderCompanyAddress": "oblakova ulica 5 3000 celje slovenija" },
+    { "OrderDate": "10.02.2022" },
+    { "OrderTaxNumber": "si42119022" }
+  ]
+
+  example 3:
+  input:
+  chunk_id: 0
+  splosna bolnisnica celje oblakova ulica 5 3000 celje slovenija id za ddv si56913362 apollonia trgovina in posredovanje materialov id za ddv $ 156913362 zaloska cesta 155 1000 ljubljana slovenija narocilo nd 23002648-800430 datum 06.07. 2023
+  output:
+  [
+    { "OrderId": "nd23002648-800430" },
+    { "OrderCompanyName": "apollonia trgovina in posredovanje materialov" },
+    { "OrderCompanyAddress": "zaloska cesta 155 1000 ljubljana slovenija" },
+    { "OrderTaxNumber": "si56913362" }, 
+    { "OrderDate": "06.07.2023" }
+  ]
+
+  example 4:
+  input:
+  chunk_id: 0
+  stran 1 od 1 5 splosna bolnisnica celje datum 13.12.2023 lekarna - nabava st. narocila 72010583/2023 dobavitelj ime kefo d.o.o. naslov oblakova ulica 5 kraj kraj celje davcna st. si42119023 stran 1 od 1 splosna bolnisnica celje datum 05.09.2023 st. narocila 7207298/2023 dobavitelj ime kefo d.0.0. ime splogna bolnignica celje naslov naslov oblakova ulica 5 kraj kraj celje
+  output:
+  [
+    { "OrderId": "72010583/2023" },
+    { "OrderCompanyName": "kefo d.o.o." },
+    { "OrderCompanyAddress": " oblakova ulica 5 kraj kraj celje" },
+    { "OrderTaxNumber": "si42119023" },
+    { "OrderDate": "13.12.2023" }
+  ]
+
+  example 5:
+  input:
+  chunk_id: 1
+  maticna st. 5064716 trr 01100-6030276827 (03) 423 36 89 davcna st. si42119024 davcni zavezanec da protikorupcijska klavzula v primeru da je kdo v imenu ali na racun prodajalca
+  output:
+  [
+    { "OrderTaxNumber": "si42119024" }
+  ]
+  </EXAMPLES>
+
+BID_PROMPT: >
+  <SCENARIO>
+  You are an NER agent for Slovenian bid documents (noisy, OCR-derived text).
+  Output a JSON array per the schema.
+  </SCENARIO>
+
+  <RULES>
+  Adapt values for OCR errors. Skip missing entities; do not hallucinate.
+  Note chunk index:
+  - chunk_id = 0: usually resides above the totality of the fields
+  - chunk_id = 1: it contains partial or redundant data, useful to recover missing info.
+  - Avoid repetitive occurrences.
+  </RULES>
+
+  <SCHEMA>
+  BID Fields:
+  - BidId: no static format, usually a sequence of chars and numbers, see examples.
+  - BidCompanyName: free-text organization name.
+  - BidCompanyAddress: free-text address block (retain structure; normalize special characters).
+  - BidTaxNumber: tax ID, matching regex: ^si[0-9]{8,10}$ (e.g. "si70365016").
+  - BidOrderDate: date format gg.mm.aaaa
+  </SCHEMA>
+
+  <FORMAT>
+  Output Format: List[Dict[str, str]] or empty list.
+  Return:
+  [] if no relevant entity is found.
+  Otherwise, return a list of dictionaries:
+  [ ...
+    { "BidCompanyName": "..." },
+    { "CompanyAddress": "..." },
+    { "BidTaxNumber": "..." },
+    ...
+  ]
+  Only include the fields found in the input text.
+  </FORMAT>
+
+  <EXAMPLES>
+  example 1:
+  input:
+  chunk_id: 0
+  institut za korporativne varnostne studije splosna bolnisnica celje oblakova ulica 5 3000 celje slovenija dokument ost 2023-01-05 datum 18. maj 2023 fax/gsm/e-mail nabaval@ sb-celje.si zadeva ponudba za pripravo strokovnih izhodisc postopek en 232-2023-gk/vh oznaka ponudbe en 232 2023 izvedba sledi zakonodaji. institut za korporativne varnostne studije cesta andreja bitenca 68 1000 ljubljana t +386 31 312 819 e info@ics-institut.si www.ics-institut.si id za ddv si 70365016 trr iban si56 0313 1100 0343 770 dr. denis caleta denis.caleta@ics-institut.si mag. miran vrsec miran.vrsec@ics-institut.si varnostni menedzer mag. miran vrsec
+  output:
+  [
+    {"BidId": "en 232-2023-gk/vh"},
+    {"BidCompanyName": "institut za korporativne varnostne studije"},
+    {"CompanyAddress": "cesta andreja bitenca 68 1000"},
+    {"BidOrderDate": "18.05.2023"},
+    {"BidPerson": "miran vrsec"},
+    {"BidTaxNumber": "si70365016"}
+  ]
+  example 2:
+  input:
+  chunk_id: 0
+  medico tehnika d.o.o. trpinceva ulica 108 1000 ljubljana ident. st. za ddv si88292223 trr si56 3000 0001 0375 676 tel +386 1232 89 85 e-mail info@medicotehnika.si splosna bolnisnica celje oblakova ulica 5 3000 celje ident. st. za ddv si42119022 ponudba 00717-2022 datum 11.10.2022 ales kavsek medico tehnika d.o.o.
+  output:
+  [
+    {"BidId": "00717-2022"},
+    {"BidCompanyName": "medico tehnika doo"},
+    {"CompanyAddress": "trpinceva ulica 108 1000 ljubljana"},
+    {"BidOrderDate": "11.10.2022"},
+    {"BidPerson": "ales kavsek"},
+    {"BidTaxNumber": "si88292223"}
+  ]
+  Example 3
+  input:
+  chunk_id: 0
+  splosna bolnisnica celje oblakova ulica 5 3000 celje v ljubljani 30.11.2022 samsung hm70a serijska stevilka soxfm3hja00025v inventarna stevilka 00540159 ponudba st. b2402.2022 oddelek anestezija seneva lovsih mediasi mediasi d.o.o. keskoskova cesta 9d si-1000 ljubljana id za ddv si39792528 t +386 152 02 300 e info@mediasi.si
+  output:
+  [
+    {"BidId": "b2402.2022"},
+    {"BidCompanyName": "Mediasi doo"},
+    {"CompanyAddress": "keskoskova cesta 9d si-1000 ljubljana"},
+    {"BidOrderDate": "30.11.2022"},
+    {"BidPerson": "seneva lovsih"},
+    {"BidTaxNumber": "si39792528"}
+  ]
+  example 4:
+  input:
+  chunk_id: 0
+  splosna bolnisnica celje oblakova ulica 5 3000 celje slovenija id za ddv si42119022 loska hladilna tehnika inzeniring in servis id za ddv si89347889 kidriceva cesta 66a 4220 skofja loka slovenija narocilo nd 22003360-800430 organizacijska enota 807 sluzba za nabavo medicinske opreme datum 08.09.2022 evidencno narocilo po ponudbi 22-00012-b kontakt stanislava hocevar pahole nabaval@sb-celje.si
+  output:
+  [
+    {"BidId": "22-00012-b"},
+    {"BidCompanyName": "loska hladilna tehnika inzeniring in servis"},
+    {"CompanyAddress": "kidriceva cesta 66a 4220 skofja loka slovenija"},
+    {"BidOrderDate": "08.09.2022"},
+    {"BidPerson": "stanislava hocevar pahole"},
+    {"BidTaxNumber": "si89347889"}
+  ]
+
+  Example 5:
+  input:
+  chunk_id: 1
+  institut za korporativne varnostne studije ljubljana cesta andreja bitenca 68 1000 ljubljana t +386 31 312 819 f +386 1 519 30 10 e info@ics-institut.si www.ics-institut.si id za ddv si70365016
+  output:
+  [
+  {"BidCompanyName": "institut za korporativne varnostne studije"},
+  {"CompanyAddress": "ljubljana cesta Andreja Bitenca 68 1000 ljubljana"},
+  {"BidTaxNumber": "si70365016"}
+  ]
+  </EXAMPLES>

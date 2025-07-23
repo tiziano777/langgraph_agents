@@ -66,7 +66,7 @@ class Preprocessor():
             text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('utf-8')
 
             # Sostituisce trattini, underscore, virgole e due punti con spazi
-            text = re.sub(r"[-<\[\]>\|_,:]+", " ", text)
+            text = re.sub(r"[<\[\]>\|_,:]+", " ", text)
 
             ### CUSTOM LOGIC ###
             # Pulizia input OCR da sequenze anomale

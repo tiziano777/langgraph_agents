@@ -63,7 +63,10 @@ PEFT_CONFIG = config["peft"]
 START_INSTRUCTION_TOKEN = config["START_INSTRUCTION_TOKEN"]
 END_INSTRUCTION_TOKEN = config["END_INSTRUCTION_TOKEN"]
 # Contenuto del prompt senza i token di inizio/fine istruzione
-PROMPT_TEMPLATE_CONTENT = config["TENDER_PROMPT"]
+
+TENDER_PROMPT = config["TENDER_PROMPT"]
+BID_PROMPT = config["BID_PROMPT"]
+ORDER_PROMPT = config["ORDER_PROMPT"]
 
 TRAINING_ARGS_DICT = config["trainer_args"]
 
@@ -100,6 +103,7 @@ model = FastLanguageModel.get_peft_model(
 def format_ner_example(example):
     input_text = example["text"]
     chunk_id = example["chunk_id"] # Prendi il chunk_id dall'esempio
+    document_id = example["id"] # Prendi l'ID per determinare il prompt
 
     cleaned_ner_list = []
     for entity_dict in example["ner"]:
@@ -112,11 +116,23 @@ def format_ner_example(example):
     else:
         output_json_string = json.dumps(cleaned_ner_list, ensure_ascii=False, separators=(',', ':'))
 
+    # Determina quale prompt usare basandosi sul campo 'id'
+    if "BID" in document_id:
+        current_prompt_content = BID_PROMPT
+    elif "TENDER" in document_id:
+        current_prompt_content = TENDER_PROMPT
+    elif "ORDER" in document_id:
+        current_prompt_content = ORDER_PROMPT
+    else:
+        # Fallback o gestione di ID non previsti
+        print(f"Warning: No specific prompt found for ID: {document_id}. Using TENDER_PROMPT as default.")
+        current_prompt_content = TENDER_PROMPT # Puoi scegliere un prompt di default o sollevare un errore
+
     # Il prompt completo che include i token di inizio/fine istruzione, il contenuto dell'istruzione,
     # l'input (con chunk_id) e l'output atteso.
     formatted_text = (
         f"{START_INSTRUCTION_TOKEN}\n" + # Inizia con <s>[INST] e una nuova riga
-        f"{PROMPT_TEMPLATE_CONTENT}\n" + # Aggiungi il contenuto untokenized del prompt
+        f"{current_prompt_content}\n" + # Aggiungi il contenuto untokenized del prompt specifico
         f"{END_INSTRUCTION_TOKEN}\n" + # Chiudi con [/INST] e una nuova riga
         f"Input:\nchunk_id: {chunk_id}\n{input_text}\n" + # Input con chunk_id
         f"Output:\n{output_json_string}</s>" # Output atteso e fine della sequenza del modello
@@ -132,7 +148,7 @@ except Exception as e:
     exit()
 
 # Suddivisione del dataset
-train_temp_split = dataset.train_test_split(test_size=0.10, seed=PEFT_CONFIG["random_state"])
+train_temp_split = dataset.train_test_split(test_size=0.10, seed=PEFT_CONFIG["random_state"], shuffle=True)
 train_dataset = train_temp_split["train"]
 temp_dataset = train_temp_split["test"]
 
@@ -157,6 +173,7 @@ processed_eval_dataset = processed_eval_dataset.remove_columns(columns_to_remove
 print("\nExample of 'text' column formatted for TRAINING (input+output):")
 print(processed_train_dataset[0]["text"])
 
+
 # --- Preparazione Dataset per Test (con colonne separate) ---
 # Primo passaggio: formatta con la stessa funzione del training per ottenere la 'text' completa
 temp_processed_test_dataset = test_dataset.map(format_ner_example, batched=False)
@@ -174,10 +191,10 @@ def extract_test_columns(example):
     if output_marker_pos != -1:
         # L'input per l'inferenza è tutto ciò che precede la risposta effettiva del modello
         # In questo caso, include "Output:\n"
-        inference_input_text = full_sequence[:output_marker_pos + len(output_marker)].strip() # <<< MODIFICA QUI
+        inference_input_text = full_sequence[:output_marker_pos + len(output_marker)].strip()
         
         # L'output atteso è solo la parte JSON più il token </s>
-        expected_output_text = full_sequence[output_marker_pos + len(output_marker):].strip() # <<< E QUI
+        expected_output_text = full_sequence[output_marker_pos + len(output_marker):].strip()
 
         # Rimuovi il token </s> dalla ground truth se presente
         if expected_output_text.endswith("</s>"):
@@ -215,8 +232,6 @@ print(f"\nTest dataset saved to: {OUTPUT_TEST_FILE_PATH}")
 print(f"\nExample of TEST dataset (id, chunk_id, text, output columns):")
 print(processed_test_dataset[0])
 print(f"Columns in processed_test_dataset: {processed_test_dataset.column_names}")
-
-exit(0) 
 
 # --- Inizializzazione Trainer ---
 # Imposta i parametri di precisione dinamicamente per TrainingArguments

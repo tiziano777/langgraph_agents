@@ -94,12 +94,12 @@ general_ner_prompts=["SL_NER_PROMPT","IT_NER_PROMPT","UK_NER_PROMPT"]
 # FINETUNING DATASET PROMPTS
 # USED TO CREATE AN AUTOANNOTATED DATASET FROM POWERFULL LLMS
 # AND THEN USE THESE DATASET TO FINETUNE A MODEL
-specific_ner_prompts=["TENDER_PROMPT","TENDER_REFINEMENT_PROMPT"]
+specific_ner_prompts=["TENDER_PROMPT","TENDER_REFINEMENT_PROMPT","BID_PROMPT","ORDER_PROMPT"]
 
 with open(PROMPT_PATH, "r", encoding="utf-8") as f:
     prompts = yaml.safe_load(f)
-
-base_prompt=prompts[specific_ner_prompts[0]] # Main task
+    
+base_prompt=prompts[specific_ner_prompts[3]] # Main task
 refinement_prompt=prompts[specific_ner_prompts[1]] # Refinement prompt
 
 print('base prompt len: '+str(count_tokens(base_prompt)))

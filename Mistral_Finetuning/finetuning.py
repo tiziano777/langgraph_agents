@@ -238,7 +238,7 @@ print(f"Dimensione del Validation Dataset: {len(eval_dataset)} esempi")
 print(f"Dimensione del Test Dataset: {len(test_dataset)} esempi")
 
 # Save test data to use it after trianing
-output_test_file_path = "/home/tiziano/langgraph_agents/Finetuning/data/gemini_tender_ner_test_split.jsonl"
+output_test_file_path = "/home/tiziano/langgraph_agents/Finetuning/data/gemini_sl_ner_test_split.jsonl"
 processed_test_dataset = test_dataset.map(format_ner_example, batched=False)
 processed_test_dataset.to_json(output_test_file_path, orient="records", lines=True, force_ascii=False)
 # Applica la funzione di formattazione al dataset di training E di validazione
