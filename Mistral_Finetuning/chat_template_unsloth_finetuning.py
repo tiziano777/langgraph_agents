@@ -6,6 +6,7 @@ import yaml
 from unsloth import FastLanguageModel
 from trl import SFTTrainer
 from transformers import TrainingArguments
+from scripts.training_callback import GenerationCallback
 from datasets import load_dataset
 from huggingface_hub import login
 
@@ -66,12 +67,6 @@ DTYPE = config["model"]["dtype"]
 LOAD_IN_4BIT = config["model"]["load_in_4bit"]
 
 PEFT_CONFIG = config["peft"]
-
-# Carica i nuovi parametri per i token del prompt
-START_INSTRUCTION_TOKEN = config["START_INSTRUCTION_TOKEN"]
-END_INSTRUCTION_TOKEN = config["END_INSTRUCTION_TOKEN"]
-EOS_TOKEN= config["EOS_TOKEN"]
-
 TRAINING_ARGS_DICT = config["trainer_args"]
 
 # --- Inizializzazione Modello e Tokenizer ---
@@ -83,6 +78,12 @@ try:
         load_in_4bit = LOAD_IN_4BIT,
         token = HF_TOKEN,
     )
+    # Imposta il pad_token_id per il tokenizer, spesso utile per il training
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token_id = tokenizer.eos_token_id
+
     print(f"Model and tokenizer loaded from: {MODEL_NAME}")
 except Exception as e:
     print(f"Error loading model from {MODEL_NAME}: {e}")
@@ -99,13 +100,11 @@ model = FastLanguageModel.get_peft_model(
     bias = PEFT_CONFIG["bias"],
     use_gradient_checkpointing = PEFT_CONFIG["use_gradient_checkpointing"],
     random_state = PEFT_CONFIG["random_state"],
-    max_seq_length = MAX_SEQ_LENGTH, # Utilizza MAX_SEQ_LENGTH
+    max_seq_length = MAX_SEQ_LENGTH,
 )
 
 # --- Funzione di Formattazione per Training/Validation Dataset ---
-# Questa funzione crea la singola stringa 'text' che il modello userà per imparare.
-# --- Funzione di Formattazione per Training/Validation Dataset ---
-def format_ner_example(example):
+def format_ner_example_for_training(example): # Rinominata per chiarezza
     input_text = example["text"]
     chunk_id = example["chunk_id"]
 
@@ -118,76 +117,47 @@ def format_ner_example(example):
     if not cleaned_ner_list:
         output_json_string = "[]"
     else:
-        # Assicurati che il JSON non abbia spazi superflui per la coerenza
         output_json_string = json.dumps(cleaned_ner_list, ensure_ascii=False, separators=(',', ':'))
 
-    # Costruisci la stringa di input per il modello di training
-    # Aderiamo al formato Mistral-7B-Instruct: <s>[INST] Instruction [/INST] Model Response</s>
-    # Le newline (\n) sono cruciali per la leggibilità e per il modello
+    messages = [
+        {"role": "user", "content": f"{PROMPT_TEMPLATE_CONTENT}\nUser Input:\nchunk_id: {chunk_id}\n{input_text}\nOutput:\n"},
+        {"role": "assistant", "content": output_json_string}
+    ]
     
-    # Costruiamo l'istruzione interna a [INST]...[/INST]
-    instruction_content = (
-        f"{PROMPT_TEMPLATE_CONTENT}" # Il tuo system prompt. Questo blocco contiene già dei \n al suo interno.
-        f"\nUser Input:\nchunk_id: {chunk_id}\n{input_text}\n" # Separa gli esempi dall'input corrente
-        f"Output:\n" # Richiesta esplicita per l'output
-    )
-
-    formatted_text = (
-        f"{tokenizer.bos_token}"        # <s>
-        f"{START_INSTRUCTION_TOKEN}"    # [INST]
-        f"{instruction_content}"        # Contenuto dell'istruzione (system prompt + user input)
-        f"{END_INSTRUCTION_TOKEN}"      # [/INST]
-        f"{output_json_string}"         # L'output che il modello deve imparare a generare
-        f"{tokenizer.eos_token}"        # </s>
-    )
+    formatted_text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=False)
     
     return {"text": formatted_text}
 
-# --- Funzione per preparare il Dataset di Test ---
-def extract_test_columns(example):
-    # full_sequence è la stringa completa formattata come nel training
-    full_sequence = example["text"]
+# --- Funzione per Preparare il Dataset di Test per l'Inferenza ---
+def format_ner_example_for_inference(example):
+    input_text = example["text"]
+    chunk_id = example["chunk_id"]
 
-    # Trova la posizione di END_INSTRUCTION_TOKEN 
-    # Usiamo il token END_INSTRUCTION_TOKEN come delimitatore
-    # La stringa di inferenza dovrebbe finire esattamente con questo token.
+    # Generiamo la stringa di input esattamente come la passeremmo al modello per l'inferenza
+    messages = [
+        {"role": "user", "content": f"{PROMPT_TEMPLATE_CONTENT}\nUser Input:\nchunk_id: {chunk_id}\n{input_text}"},
+    ]
     
-    # Assumiamo che END_INSTRUCTION_TOKEN sia definito e sia '[/INST]'
-    end_instruction_token_str = END_INSTRUCTION_TOKEN
+    # add_generation_prompt=True aggiungerà lo spazio necessario dopo [/INST] per la generazione
+    input_for_inference = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+    
+    # Prepariamo la ground truth come stringa JSON
+    cleaned_ner_list = []
+    for entity_dict in example["ner"]:
+        cleaned_entity_dict = {k: v for k, v in entity_dict.items() if v is not None}
+        if cleaned_entity_dict:
+            cleaned_ner_list.append(cleaned_entity_dict)
 
-    # Trova la posizione dell'END_INSTRUCTION_TOKEN
-    inst_end_pos = full_sequence.rfind(end_instruction_token_str)
-
-    inference_input_text = ""
-    expected_output_text = "" # Ground truth per la valutazione
-
-    if inst_end_pos != -1:
-        # L'input per l'inferenza è tutto ciò che precede e include END_INSTRUCTION_TOKEN
-        inference_input_text = full_sequence[:inst_end_pos + len(end_instruction_token_str)]
-        
-        # L'output atteso è tutto ciò che segue END_INSTRUCTION_TOKEN fino a </s>
-        # Rimuovi l'EOS token se presente nell'output atteso
-        output_start_pos = inst_end_pos + len(end_instruction_token_str)
-        temp_output = full_sequence[output_start_pos:]
-        if temp_output.endswith(tokenizer.eos_token):
-            expected_output_text = temp_output[:-len(tokenizer.eos_token)]
-        else:
-            expected_output_text = temp_output
-            
-        # Rimuovi eventuali spazi esterni sia dall'input che dall'output
-        inference_input_text = inference_input_text.strip()
-        expected_output_text = expected_output_text.strip()
-            
+    if not cleaned_ner_list:
+        expected_output_json_string = "[]"
     else:
-        print(f"Warning: '{end_instruction_token_str}' not found in full sequence for example ID: {example.get('id', 'N/A')}")
-        inference_input_text = full_sequence # Fallback
-        expected_output_text = ""
+        expected_output_json_string = json.dumps(cleaned_ner_list, ensure_ascii=False, separators=(',', ':'))
 
     return {
         "id": example["id"],
         "chunk_id": example["chunk_id"],
-        "text": inference_input_text, # Questa sarà la colonna 'text' per l'inferenza
-        "output": expected_output_text # Questa sarà la colonna 'output' (ground truth, solo JSON)
+        "input_for_inference": input_for_inference,
+        "expected_output": expected_output_json_string
     }
 
 # --- Caricamento e Suddivisione del Dataset ---
@@ -205,18 +175,19 @@ temp_dataset = train_temp_split["test"]
 
 eval_test_split = temp_dataset.train_test_split(test_size=0.50, seed=PEFT_CONFIG["random_state"])
 eval_dataset = eval_test_split["train"] # EVAL
-test_dataset = eval_test_split["test"]
+test_dataset = eval_test_split["test"] # Questo è il dataset che formatteremo diversamente
 
 print(f"Training Dataset size: {len(train_dataset)} examples")
 print(f"Validation Dataset size: {len(eval_dataset)} examples")
 print(f"Test Dataset size: {len(test_dataset)} examples")
 
 # --- Preparazione Dataset per Training e Validation ---
-processed_train_dataset = train_dataset.map(format_ner_example, batched=False)
-processed_eval_dataset = eval_dataset.map(format_ner_example, batched=False)
+# Qui si applica format_ner_example_for_training
+processed_train_dataset = train_dataset.map(format_ner_example_for_training, batched=False)
+processed_eval_dataset = eval_dataset.map(format_ner_example_for_training, batched=False)
 
 # Rimuovi le colonne non necessarie per il training/validation
-columns_to_keep_train_eval = ["id", "chunk_id", "text"] # Assuming id and chunk_id are useful for logging/tracking
+columns_to_keep_train_eval = ["id", "chunk_id", "text"]
 columns_to_remove_train_eval = [col for col in processed_train_dataset.column_names if col not in columns_to_keep_train_eval]
 processed_train_dataset = processed_train_dataset.remove_columns(columns_to_remove_train_eval)
 processed_eval_dataset = processed_eval_dataset.remove_columns(columns_to_remove_train_eval)
@@ -224,14 +195,14 @@ processed_eval_dataset = processed_eval_dataset.remove_columns(columns_to_remove
 print("\nExample of 'text' column formatted for TRAINING (input+output):")
 print(processed_train_dataset[0]["text"])
 
-# --- Preparazione Dataset per Test (con colonne separate) ---
-# Primo passaggio: formatta con la stessa funzione del training per ottenere la 'text' completa
-temp_processed_test_dataset = test_dataset.map(format_ner_example, batched=False)
 
-processed_test_dataset = temp_processed_test_dataset.map(extract_test_columns, batched=False)
+# --- Preparazione Dataset per Test (con colonne separate) ---
+# Applichiamo SOLO format_ner_example_for_inference al test_dataset originale
+processed_test_dataset = test_dataset.map(format_ner_example_for_inference, batched=False)
 
 # Rimuovi tutte le colonne che non sono quelle desiderate per il dataset di test finale
-columns_to_keep_test_final = ["id", "chunk_id", "text", "output"]
+# Le colonne desiderate ora sono "id", "chunk_id", "input_for_inference", "expected_output"
+columns_to_keep_test_final = ["id", "chunk_id", "input_for_inference", "expected_output"]
 columns_to_remove_test_final = [col for col in processed_test_dataset.column_names if col not in columns_to_keep_test_final]
 processed_test_dataset = processed_test_dataset.remove_columns(columns_to_remove_test_final)
 
@@ -244,17 +215,26 @@ processed_test_dataset.to_json(
 )
 
 print(f"\nTest dataset saved to: {OUTPUT_TEST_FILE_PATH}")
-print(f"\nExample of TEST dataset (id, chunk_id, text, output columns):")
+print(f"\nExample of TEST dataset (id, chunk_id, input_for_inference, expected_output columns):")
 print(processed_test_dataset[0])
 print(f"Columns in processed_test_dataset: {processed_test_dataset.column_names}")
 
 
 # --- Inizializzazione Trainer ---
 # Imposta i parametri di precisione dinamicamente per TrainingArguments
+
 TRAINING_ARGS_DICT["fp16"] = not torch.cuda.is_bf16_supported()
 TRAINING_ARGS_DICT["bf16"] = torch.cuda.is_bf16_supported()
 
 training_args = TrainingArguments(**TRAINING_ARGS_DICT)
+
+generation_callback = GenerationCallback(
+    model=model, 
+    tokenizer=tokenizer, 
+    eval_dataset_for_inference=processed_eval_dataset, # Passa il tuo dataset di validazione processato
+    num_examples=3, # Numero di esempi da stampare ad ogni intervallo
+    log_steps_interval=10 # Ogni quanti step stampare gli esempi (regola in base alle tue esigenze)
+)
 
 trainer = SFTTrainer(
     model = model,
@@ -263,8 +243,9 @@ trainer = SFTTrainer(
     eval_dataset = processed_eval_dataset,
     dataset_text_field = "text",
     max_seq_length = MAX_SEQ_LENGTH,
-    packing = False,
+    packing = True,
     args = training_args,
+    callbacks = [generation_callback]
 )
 
 # --- Avvio Training ---

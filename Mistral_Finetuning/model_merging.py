@@ -193,7 +193,7 @@ if __name__ == "__main__":
 
     # Parametri di esempio (dovresti adattarli ai tuoi)
     CONFIG_FILE_PATH = "config/mistral7B_instruct_v3.yml" # Il tuo file di configurazione
-    OUTPUT_MERGED_MODEL_DIR = "merged_model_checkpoint_averaged" # Dove verrà salvato il modello finale mergiato
+    OUTPUT_MERGED_MODEL_DIR = "models/merged_model_checkpoint_averaged" # Dove verrà salvato il modello finale mergiato
 
     # Assicurati di avere il token HF se il modello base non è pubblico
     HF_TOKEN = os.environ.get("hf_token")
@@ -202,7 +202,7 @@ if __name__ == "__main__":
     merge_lora_checkpoints(
         config_file=CONFIG_FILE_PATH,
         output_merged_dir=OUTPUT_MERGED_MODEL_DIR,
-        num_checkpoints_to_average=8, # Puoi modificare questo valore
+        num_checkpoints_to_average=6, # Puoi modificare questo valore
         save_method="merged_16bit",
         hf_token=HF_TOKEN
     )

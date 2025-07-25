@@ -4,4 +4,5 @@ data/
 unsloth_compiled_cache/
 models/
 fine_tuned_mistral_ner_model*/
-scripts/
+scripts/CEDAR_annotations
+scripts/raw_slovenian_OCR_data

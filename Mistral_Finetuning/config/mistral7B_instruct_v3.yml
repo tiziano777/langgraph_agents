@@ -1,41 +1,66 @@
 # --- Configurazione Generale ---
-dataset_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_sl_procurement_data.jsonl"
-output_test_file_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_sl_procurement_test_split.jsonl"
-model_checkpoint_dir: "/home/tiziano/langgraph_agents/Mistral_Finetuning/models" 
+
+dataset_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_tender_ner_dataset.jsonl"
+output_test_file_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_tender_ner_test_split.jsonl"
+
+model_checkpoint_dir: "/home/tiziano/langgraph_agents/Mistral_Finetuning/models"
+
+model_test_dir: /home/tiziano/langgraph_agents/Mistral_Finetuning/models/checkpoint-90
+
+
+# --- Configurazione Inferenza ---
+inference:
+  output_results_file: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/tender_results.jsonl"
+  generation_params:
+    temperature: 0.05
+    max_new_tokens: 350
+    top_p: 0.5
+    top_k: 10
+    do_sample: False 
+    repetition_penalty: 1.11
 
 # --- Configurazione Modello ---
 model:
   name: "mistralai/Mistral-7B-Instruct-v0.3"
-  max_seq_length: 4096
-  dtype: null # Rappresenta None in YAML
+  max_seq_length: 3500
   load_in_4bit: false # Rappresenta False in YAML
   dtype: "bfloat16"
 
-# --- Configurazione Inferenza ---
-inference:
-  output_results_file: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/inference_results.jsonl"
-  generation_params:
-    max_new_tokens: 512
-    do_sample: true
-    temperature: 0.1
-    top_p: 0.5
-    top_k: 10
-    num_beams: 1 # Mantenere 1 per campionamento, no beam search
+# --- Configurazione Training ---
+trainer_args:
+  output_dir: "models" # folder to store model checkpoints
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 2
+  num_train_epochs: 6 # TRAINING EPOCHS LENGTH
+  learning_rate: 0.00001 
+  eval_strategy: "steps"
+  eval_steps: 5 
+  save_strategy: "steps"
+  save_steps: 10
+  load_best_model_at_end: false 
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false 
+  warmup_steps: 100
+  logging_steps: 1
+  optim: "adamw_torch"
+  seed: 42
+  do_eval: true 
 
 # --- Configurazione PEFT/LoRA (se usi Unsloth) ---
 peft:
   r: 16
   target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
   lora_alpha: 16
-  lora_dropout: 0.0 # Float
+  lora_dropout: 0.05 # Float
   bias: "none"
   use_gradient_checkpointing: "unsloth"
   random_state: 42
 
-# --- Prompt Template (può essere un'unica stringa YAML multiline) ---
-
-START_INSTRUCTION_TOKEN: <s>[INST]
+# --- MISTRAL Prompt Template (può essere un'unica stringa YAML multiline) ---
+START_INSTRUCTION_TOKEN: "[INST]"
 END_INSTRUCTION_TOKEN: "[/INST]"
+EOS_TOKEN: </s>
+
 
 TENDER_PROMPT: >
  <SCENARIO>
@@ -154,16 +179,13 @@ ORDER_PROMPT: >
   You are an NER agent for Slovenian order documents (noisy, OCR-derived text).
   Output a JSON array per the schema.
   </SCENARIO>
-
   <RULES>
-  Adapt values for OCR errors, correcting them to the specified format where applicable.
-  Skip missing entities; do not hallucinate.
+  Adapt values for OCR errors. Skip missing entities; do not hallucinate.
   Note chunk index:
   - chunk_id = 0: usually resides above the totality of the fields.
   - chunk_id = 1: it contains partial or redundant data, useful to recover missing info.
   - Avoid repetitive occurrences.
   </RULES>
-
   <SCHEMA>
   Order Fields:
   - OrderID: no static format, usually a sequence of chars and numbers, see examples.
@@ -173,21 +195,9 @@ ORDER_PROMPT: >
   - OrderDate: date format gg.mm.aaaa
   - OrderPerson: free-text person name.
   </SCHEMA>
-
   <FORMAT>
-  Output Format: List[Dict[str, str]] or empty list.
-  Return:
-  [] if no relevant entity is found.
-  Otherwise, return a list of dictionaries:
-  [ ...
-    { "OrderCompanyName": "..." },
-    { "OrderCompanyAddress": "..." },
-    { "OrderTaxNumber": "..." },
-    ...
-  ]
-  Only include the fields found in the input text.
+  Output: List[Dict[str,str]] or []. Generate ONLY the JSON array and then stop.
   </FORMAT>
-
   <EXAMPLES>
   example 1:
   input:
@@ -259,7 +269,6 @@ BID_PROMPT: >
   You are an NER agent for Slovenian bid documents (noisy, OCR-derived text).
   Output a JSON array per the schema.
   </SCENARIO>
-
   <RULES>
   Adapt values for OCR errors. Skip missing entities; do not hallucinate.
   Note chunk index:
@@ -267,7 +276,6 @@ BID_PROMPT: >
   - chunk_id = 1: it contains partial or redundant data, useful to recover missing info.
   - Avoid repetitive occurrences.
   </RULES>
-
   <SCHEMA>
   BID Fields:
   - BidId: no static format, usually a sequence of chars and numbers, see examples.
@@ -276,26 +284,14 @@ BID_PROMPT: >
   - BidTaxNumber: tax ID, matching regex: ^si[0-9]{8,10}$ (e.g. "si70365016").
   - BidOrderDate: date format gg.mm.aaaa
   </SCHEMA>
-
   <FORMAT>
-  Output Format: List[Dict[str, str]] or empty list.
-  Return:
-  [] if no relevant entity is found.
-  Otherwise, return a list of dictionaries:
-  [ ...
-    { "BidCompanyName": "..." },
-    { "CompanyAddress": "..." },
-    { "BidTaxNumber": "..." },
-    ...
-  ]
-  Only include the fields found in the input text.
+  Output: List[Dict[str,str]] or []. Generate ONLY the JSON array and then stop.
   </FORMAT>
-
   <EXAMPLES>
   example 1:
   input:
   chunk_id: 0
-  institut za korporativne varnostne studije splosna bolnisnica celje oblakova ulica 5 3000 celje slovenija dokument ost 2023-01-05 datum 18. maj 2023 fax/gsm/e-mail nabaval@ sb-celje.si zadeva ponudba za pripravo strokovnih izhodisc postopek en 232-2023-gk/vh oznaka ponudbe en 232 2023 izvedba sledi zakonodaji. institut za korporativne varnostne studije cesta andreja bitenca 68 1000 ljubljana t +386 31 312 819 e info@ics-institut.si www.ics-institut.si id za ddv si 70365016 trr iban si56 0313 1100 0343 770 dr. denis caleta denis.caleta@ics-institut.si mag. miran vrsec miran.vrsec@ics-institut.si varnostni menedzer mag. miran vrsec
+  institut za korporativne varnostne studije splosna bolnisnica celje oblakova ulica 5 3000 celje slovenija dokument ost 2023-01-05 datum 18. maj 2023 fax/gsm/e-mail nabaval@ sb-celje.si zadeva ponudba za pripravo strokovnih izhodisc postopek 232-2023-gk/vh oznaka ponudbe 232 2023 izvedba sledi zakonodaji. institut za korporativne varnostne studije cesta andreja bitenca 68 1000 ljubljana t +386 31 312 819 e info@ics-institut.si www.ics-institut.si id za ddv si 70365016 trr iban si56 0313 1100 0343 770 dr. denis caleta denis.caleta@ics-institut.si mag. miran vrsec miran.vrsec@ics-institut.si varnostni menedzer mag. miran vrsec
   output:
   [
     {"BidId": "en 232-2023-gk/vh"},
@@ -305,44 +301,47 @@ BID_PROMPT: >
     {"BidPerson": "miran vrsec"},
     {"BidTaxNumber": "si70365016"}
   ]
+
   example 2:
   input:
   chunk_id: 0
   medico tehnika d.o.o. trpinceva ulica 108 1000 ljubljana ident. st. za ddv si88292223 trr si56 3000 0001 0375 676 tel +386 1232 89 85 e-mail info@medicotehnika.si splosna bolnisnica celje oblakova ulica 5 3000 celje ident. st. za ddv si42119022 ponudba 00717-2022 datum 11.10.2022 ales kavsek medico tehnika d.o.o.
   output:
   [
-    {"BidId": "00717-2022"},
-    {"BidCompanyName": "medico tehnika doo"},
-    {"CompanyAddress": "trpinceva ulica 108 1000 ljubljana"},
-    {"BidOrderDate": "11.10.2022"},
-    {"BidPerson": "ales kavsek"},
-    {"BidTaxNumber": "si88292223"}
+    {"BidId":"00717-2022"},
+    {"BidCompanyName":"medico tehnika doo"},
+    {"CompanyAddress":"trpinceva ulica 108 1000 ljubljana"},
+    {"BidOrderDate":"11.10.2022"},
+    {"BidPerson":"ales kavsek"},
+    {"BidTaxNumber":"si88292223"}
   ]
+
   Example 3
   input:
   chunk_id: 0
   splosna bolnisnica celje oblakova ulica 5 3000 celje v ljubljani 30.11.2022 samsung hm70a serijska stevilka soxfm3hja00025v inventarna stevilka 00540159 ponudba st. b2402.2022 oddelek anestezija seneva lovsih mediasi mediasi d.o.o. keskoskova cesta 9d si-1000 ljubljana id za ddv si39792528 t +386 152 02 300 e info@mediasi.si
   output:
   [
-    {"BidId": "b2402.2022"},
-    {"BidCompanyName": "Mediasi doo"},
-    {"CompanyAddress": "keskoskova cesta 9d si-1000 ljubljana"},
-    {"BidOrderDate": "30.11.2022"},
-    {"BidPerson": "seneva lovsih"},
-    {"BidTaxNumber": "si39792528"}
+    {"BidId":"b2402.2022"},
+    {"BidCompanyName":"Mediasi doo"},
+    {"CompanyAddress":"keskoskova cesta 9d si-1000 ljubljana"},
+    {"BidOrderDate":"30.11.2022"},
+    {"BidPerson":"seneva lovsih"},
+    {"BidTaxNumber":"si39792528"}
   ]
+
   example 4:
   input:
   chunk_id: 0
   splosna bolnisnica celje oblakova ulica 5 3000 celje slovenija id za ddv si42119022 loska hladilna tehnika inzeniring in servis id za ddv si89347889 kidriceva cesta 66a 4220 skofja loka slovenija narocilo nd 22003360-800430 organizacijska enota 807 sluzba za nabavo medicinske opreme datum 08.09.2022 evidencno narocilo po ponudbi 22-00012-b kontakt stanislava hocevar pahole nabaval@sb-celje.si
   output:
   [
-    {"BidId": "22-00012-b"},
-    {"BidCompanyName": "loska hladilna tehnika inzeniring in servis"},
-    {"CompanyAddress": "kidriceva cesta 66a 4220 skofja loka slovenija"},
-    {"BidOrderDate": "08.09.2022"},
-    {"BidPerson": "stanislava hocevar pahole"},
-    {"BidTaxNumber": "si89347889"}
+    {"BidId":"22-00012-b"},
+    {"BidCompanyName":"loska hladilna tehnika inzeniring in servis"},
+    {"CompanyAddress":"kidriceva cesta 66a 4220 skofja loka slovenija"},
+    {"BidOrderDate":"08.09.2022"},
+    {"BidPerson":"stanislava hocevar pahole"},
+    {"BidTaxNumber":"si89347889"}
   ]
 
   Example 5:
@@ -351,27 +350,8 @@ BID_PROMPT: >
   institut za korporativne varnostne studije ljubljana cesta andreja bitenca 68 1000 ljubljana t +386 31 312 819 f +386 1 519 30 10 e info@ics-institut.si www.ics-institut.si id za ddv si70365016
   output:
   [
-  {"BidCompanyName": "institut za korporativne varnostne studije"},
-  {"CompanyAddress": "ljubljana cesta Andreja Bitenca 68 1000 ljubljana"},
-  {"BidTaxNumber": "si70365016"}
+  {"BidCompanyName":"institut za korporativne varnostne studije"},
+  {"CompanyAddress":"ljubljana cesta Andreja Bitenca 68 1000 ljubljana"},
+  {"BidTaxNumber":"si70365016"}
   ]
   </EXAMPLES>
-
-trainer_args:
-  output_dir: "models" # folder to store model checkpoints
-  per_device_train_batch_size: 2
-  gradient_accumulation_steps: 4
-  num_train_epochs: 6 # TRAINING EPOCHS LENGTH
-  learning_rate: 0.0002 
-  eval_strategy: "steps"
-  eval_steps: 10 
-  save_strategy: "steps"
-  save_steps: 10
-  load_best_model_at_end: true #
-  metric_for_best_model: "eval_loss"
-  greater_is_better: false 
-  warmup_steps: 5
-  logging_steps: 1
-  optim: "adamw_torch"
-  seed: 3407
-  do_eval: true
