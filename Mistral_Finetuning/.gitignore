@@ -5,3 +5,4 @@ unsloth_compiled_cache/
 models*/
 fine_tuned_mistral_ner_model*/
 scripts/*/
+scripts/__pycache__/

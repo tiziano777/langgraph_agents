@@ -86,6 +86,7 @@ def run_pipeline(input_path, output_path, checkpoint_path, llm_config, prompts):
         span_refiner = SpanRefiner(llm=llm, prompts=prompts) 
         span_format = SpanFormat()
         writer = StreamWriter(output_file=output_path)
+        
         cost_analyzer = CostAnalyze()
 
         graph = create_pipeline(annotator, correction, span_refiner, span_format, writer)

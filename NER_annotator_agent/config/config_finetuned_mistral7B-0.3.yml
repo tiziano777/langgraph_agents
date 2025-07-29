@@ -5,7 +5,7 @@ model_name: /home/tiziano/langgraph_agents/NER_annotator_agent/local_llm/fine_tu
 # Parametri di generazione del modello
 # *** MODIFICHE SUGGERITE QUI ***
 temperature: 0.05           # Abbassato drasticamente per un output quasi deterministico.
-max_output_tokens: 600     # Numero massimo di nuovi token da generare per risposta (puoi aumentarlo se il JSON è molto lungo).
+max_output_tokens: 350     # Numero massimo di nuovi token da generare per risposta (puoi aumentarlo se il JSON è molto lungo).
 top_p: 0.5
 top_k: 10
 do_sample: False           # <<< CRUCIALE: Impostato a False per un output deterministico (greedy decoding).

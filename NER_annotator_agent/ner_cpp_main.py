@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 ###############################################################
 
-# === LOCAL MODEL SETUP (GEMMA3)===
+# === LOCAL MODEL SETUP (GEMMA3) ===
 
 GEMMA_PATH = "/home/tiziano/langgraph_agents/NER_annotator_agent/config/config_gemma3.yml"
 with open(GEMMA_PATH, "r", encoding="utf-8") as f:
@@ -45,8 +45,8 @@ input_path=os.environ.get('input_path')
 
 # CPP OUTPUT AND CHECKPOINTING
 
-checkpoint_path=os.environ.get('cpp_checkpoint_path')
-output_path=os.environ.get('cpp_output_path')
+checkpoint_path=os.environ.get('checkpoint_path')
+output_path=os.environ.get('output_path')
 
 ####################################################################
 

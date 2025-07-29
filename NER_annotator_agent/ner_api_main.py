@@ -80,8 +80,8 @@ input_path=os.environ.get('input_path')
 
 # GEMINI OUTPUT AND CHECKPOINTING
 
-checkpoint_path=os.environ.get('gemini_checkpoint_path')
-output_path=os.environ.get('gemini_output_path')
+checkpoint_path=os.environ.get('checkpoint_path')
+output_path=os.environ.get('output_path')
 
 
 ####################################################################
@@ -99,7 +99,7 @@ specific_ner_prompts=["TENDER_PROMPT","TENDER_REFINEMENT_PROMPT","BID_PROMPT","O
 with open(PROMPT_PATH, "r", encoding="utf-8") as f:
     prompts = yaml.safe_load(f)
     
-base_prompt=prompts[specific_ner_prompts[3]] # Main task
+base_prompt=prompts[specific_ner_prompts[2]] # Main task
 refinement_prompt=prompts[specific_ner_prompts[1]] # Refinement prompt
 
 print('base prompt len: '+str(count_tokens(base_prompt)))

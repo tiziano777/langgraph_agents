@@ -114,7 +114,12 @@ def run_pipeline(input_path, output_path, checkpoint_path, base_prompt, refineme
             continue
 
         try:
-            state = graph.invoke({'id':id, 'text': text, 'chunk_id':str(chunk_id)})
+            ### CUSTOM LOGIC
+            if chunk_id==0: # Assuming only first part of the doc include info about main fields
+                state = graph.invoke({'id':id, 'text': text, 'chunk_id':str(chunk_id)})
+            else:
+                checkpoint += 1
+                continue
 
             if state['error_status'] is not None:
                 logger.warning(f"Errore nello stato a checkpoint {entry}: {state['error_status']}")

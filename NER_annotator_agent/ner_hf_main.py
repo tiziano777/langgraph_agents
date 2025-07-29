@@ -87,12 +87,12 @@ else:
 
 # UNIQUE INPUT
 
-input_path=os.environ.get('test_input_path')
+input_path=os.environ.get('input_path')
 
 # LOCAL HF OUTPUT AND CHECKPOINTING
 
-output_path=os.environ.get('hf_test_output_path')
-checkpoint_path=os.environ.get('hf_test_checkpoint_path')
+output_path=os.environ.get('output_path')
+checkpoint_path=os.environ.get('checkpoint_path')
 
 ######################################################################
 

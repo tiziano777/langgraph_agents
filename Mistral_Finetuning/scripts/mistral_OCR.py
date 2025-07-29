@@ -2,12 +2,12 @@ import os
 import json
 import re
 import unicodedata
-import base64 # Necessario per la codifica Base64 dei PDF
+import base64
 from dotenv import load_dotenv
 from transformers import AutoTokenizer
 import spacy
-from mistralai.client import MistralClient # Importa il client Mistral
-from mistralai.models.chat_completion import ChatMessage # Potrebbe essere utile per altri usi, ma non strettamente per OCR
+from mistralai.client import MistralClient
+from mistralai.models.chat_completion import ChatMessage
 
 # Carica le variabili d'ambiente dal file .env
 load_dotenv()
@@ -15,18 +15,27 @@ load_dotenv()
 # ============================
 # 📌 PARAMETRI MODULARI
 # ============================
-YEAR_FILTER = "2023"          # Nome cartella principale (es. contained in "2023")
-FILENAME_KEYWORD = "ORDER"    # Sottostringa che deve apparire nel nome del file
-MAX_TOKENS = 1200             # Max token per chunk
-SPACY_MODEL = "sl_core_news_sm" # Modello spaCy per la segmentazione delle frasi
+YEAR_FILTER = "2023"
+FILENAME_KEYWORD = "ORDER"
+MAX_TOKENS = 1200
+SPACY_MODEL = "sl_core_news_sm"
 
 # Assicurati che queste directory esistano o modificale secondo le tue esigenze
-input_root = "/home/tiziano/GLiNER_fine_tuned/model/finetuning_data/sl/bid/raw_slovenian_PDF_data" # Directory contenente i PDF
+# input_root ora può contenere sia PDF che DOCX
+input_root = "/home/tiziano/GLiNER_fine_tuned/model/finetuning_data/sl/bid/raw_slovenian_DOCS_data" # <-- MODIFICATO: ora per PDF/DOCX
 output_jsonl = "/home/tiziano/GLiNER_fine_tuned/model/finetuning_data/sl/order/train/data/2023_mistral_ocr_processed.jsonl"
 
+# Estensioni e MIME types supportati
+SUPPORTED_EXTENSIONS = {
+    ".pdf": "application/pdf",
+    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    # Aggiungi altri se necessario e supportati da Mistral
+}
+
 # Recupera il token Hugging Face e la chiave API Mistral dalle variabili d'ambiente
-hf_token = os.getenv("hf_token")
-mistral_api_key = os.getenv("mistral_token")
+hf_token = os.getenv("HF_TOKEN")
+mistral_api_key = os.getenv("MISTRAL_API_KEY")
 
 if not hf_token:
     print("ATTENZIONE: Il token Hugging Face (HF_TOKEN) non è stato trovato nel file .env. Alcune operazioni potrebbero fallire.")
@@ -65,25 +74,17 @@ def process_text(text: str) -> str:
     Funzione di pre-processing del testo con normalizzazione e pulizia.
     """
     try:
-        # Conversione minuscola
         text = text.lower()
-
-        # Normalizzazione dei caratteri con diacritici (e.g., "Jöhn" -> "john")
         text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('utf-8')
-
-        # Sostituisce trattini, underscore, virgole e due punti con spazi
         text = re.sub(r"[<\[\]>\|_,:]+", " ", text)
-
-        # Pulizia input OCR da sequenze anomale
         text = re.sub(r"\n+", " ", text)
         text = text.replace("\t", " ")
         text = text.replace("\f", " ")
-        text = re.sub(r" {2,}", " ", text) # Rimuove spazi multipli
-
+        text = re.sub(r" {2,}", " ", text)
         return text.strip()
     except Exception as e:
         print(f"Errore durante il pre-processing del testo: {e}")
-        return text # Restituisce il testo originale in caso di errore
+        return text
 
 def smart_chunk(text: str, max_tokens: int = MAX_TOKENS) -> list[str]:
     """
@@ -104,29 +105,22 @@ def smart_chunk(text: str, max_tokens: int = MAX_TOKENS) -> list[str]:
 
     for sent in doc.sents:
         sent_text = sent.text.strip()
-        if not sent_text: # Salta frasi vuote
+        if not sent_text:
             continue
 
         sent_tokens = tokenizer.encode(sent_text, add_special_tokens=False)
         sent_token_length = len(sent_tokens)
 
-        # Se l'aggiunta della frase corrente supera il limite di token,
-        # finalizza il chunk precedente e inizia un nuovo chunk.
-        # Si assume che una singola frase non sia più lunga di MAX_TOKENS.
         if current_chunk_token_length + sent_token_length > max_tokens and current_chunk_sentences:
-            # Decodifica le frasi accumulate nel chunk
             merged_chunk_text = " ".join(current_chunk_sentences)
             chunks.append(merged_chunk_text)
             
-            # Inizia un nuovo chunk con la frase corrente
             current_chunk_sentences = [sent_text]
             current_chunk_token_length = sent_token_length
         else:
-            # Aggiungi la frase al chunk corrente
             current_chunk_sentences.append(sent_text)
             current_chunk_token_length += sent_token_length
             
-    # Aggiungi l'ultimo chunk se non è vuoto
     if current_chunk_sentences:
         merged_chunk_text = " ".join(current_chunk_sentences)
         chunks.append(merged_chunk_text)
@@ -134,55 +128,64 @@ def smart_chunk(text: str, max_tokens: int = MAX_TOKENS) -> list[str]:
     return chunks
 
 def is_valid_file_for_ocr(filename):
-    """Verifica se il nome del file è valido in base ai criteri definiti per i PDF."""
-    return FILENAME_KEYWORD in filename and filename.lower().endswith(".pdf")
+    """Verifica se il nome del file è valido in base ai criteri definiti (keyword ed estensione supportata)."""
+    if FILENAME_KEYWORD not in filename:
+        return False
+    
+    file_extension = os.path.splitext(filename)[1].lower()
+    return file_extension in SUPPORTED_EXTENSIONS # <-- MODIFICATO: Controlla se l'estensione è supportata
 
-def encode_pdf_to_base64(pdf_path: str) -> str:
-    """Codifica un file PDF in una stringa Base64."""
-    with open(pdf_path, "rb") as pdf_file:
-        encoded_string = base64.b64encode(pdf_file.read()).decode('utf-8')
+def encode_file_to_base64(file_path: str) -> str:
+    """Codifica un file in una stringa Base64."""
+    with open(file_path, "rb") as file:
+        encoded_string = base64.b64encode(file.read()).decode('utf-8')
     return encoded_string
 
-def extract_text_from_pdf_with_mistral_ocr(pdf_path: str) -> str | None:
+def get_mime_type(file_path: str) -> str | None:
+    """Restituisce il MIME type basandosi sull'estensione del file."""
+    file_extension = os.path.splitext(file_path)[1].lower()
+    return SUPPORTED_EXTENSIONS.get(file_extension) # Ottiene il MIME type dalla mappa
+
+def extract_text_from_file_with_mistral_ocr(file_path: str) -> str | None:
     """
-    Funzione per estrarre testo da un PDF usando l'API OCR di Mistral.
+    Funzione per estrarre testo da un file (PDF, DOCX, PPTX) usando l'API OCR di Mistral.
     """
     if mistral_client is None:
         print("Client Mistral non inizializzato. Impossibile eseguire l'OCR.")
         return None
 
+    mime_type = get_mime_type(file_path)
+    if not mime_type:
+        print(f"Errore: Tipo di file non supportato per l'OCR Mistral: {file_path}")
+        return None
+
     try:
-        # Codifica il PDF in Base64
-        base64_pdf = encode_pdf_to_base64(pdf_path)
+        # Codifica il file in Base64
+        base64_file = encode_file_to_base64(file_path)
         
         # Prepara il formato del documento per l'API Mistral OCR
         document = {
             "type": "document_url",
-            "document_url": f"data:application/pdf;base64,{base64_pdf}"
+            "document_url": f"data:{mime_type};base64,{base64_file}" # <-- Usa il MIME type dinamico
         }
 
-        print(f"Inizio OCR per {pdf_path} con Mistral AI...")
+        print(f"Inizio OCR per {file_path} (Tipo: {mime_type}) con Mistral AI...")
         ocr_response = mistral_client.ocr.process(
-            model="mistral-ocr-latest", # Usa il modello OCR più recente
+            model="mistral-ocr-latest",
             document=document
         )
 
-        # L'output dell'OCR di Mistral è in formato Markdown
-        # Potrebbe essere necessario un parsing più sofisticato se la struttura è importante,
-        # ma per l'estrazione del testo grezzo, di solito è sufficiente prendere il campo 'text'.
         extracted_text = ocr_response.text_content
-        print(f"OCR completato per {pdf_path}.")
+        print(f"OCR completato per {file_path}.")
         return extracted_text
 
     except Exception as e:
-        print(f"Errore durante l'estrazione OCR del PDF {pdf_path} con Mistral AI: {e}")
-        # Gestione di errori specifici dell'API Mistral (es. rate limiting, file troppo grandi)
-        # potresti voler aggiungere una logica di retry qui
+        print(f"Errore durante l'estrazione OCR del file {file_path} con Mistral AI: {e}")
         return None
 
 def process_directory(root_dir: str, output_path: str):
     """
-    Elabora i file PDF in una directory specificata, applica l'OCR, il pre-processing,
+    Elabora i file supportati in una directory specificata, applica l'OCR, il pre-processing,
     il chunking e salva i risultati in un file JSONL.
     """
     print(f"Inizio elaborazione della directory: {root_dir}")
@@ -202,19 +205,19 @@ def process_directory(root_dir: str, output_path: str):
                     continue
 
                 for filename in os.listdir(subfolder_path):
-                    if not is_valid_file_for_ocr(filename):
+                    if not is_valid_file_for_ocr(filename): # Controlla ora tutte le estensioni supportate
+                        print(f"Saltando file non supportato o non corrispondente ai criteri: {filename}")
                         continue
 
                     file_path = os.path.join(subfolder_path, filename)
                     
-                    # Chiamata all'OCR di Mistral per estrarre il testo dal PDF
-                    content = extract_text_from_pdf_with_mistral_ocr(file_path)
+                    # Chiamata all'OCR di Mistral per estrarre il testo dal file (PDF, DOCX, ecc.)
+                    content = extract_text_from_file_with_mistral_ocr(file_path)
                     if content is None:
-                        print(f"Skipping file {filename} due to Mistral OCR extraction error.")
+                        print(f"Saltando file {filename} a causa di un errore di estrazione OCR.")
                         continue
 
                     try:
-                        # Applica il pre-processing al contenuto estratto dall'OCR
                         processed_content = process_text(content)
                     except Exception as e:
                         print(f"Errore durante il pre-processamento del contenuto OCR di {file_path}: {e}")
@@ -251,7 +254,6 @@ def process_directory(root_dir: str, output_path: str):
 # ============================
 if __name__ == "__main__":
     
-    # Crea le directory di output se non esistono
     os.makedirs(os.path.dirname(output_jsonl), exist_ok=True)
 
     process_directory(input_root, output_jsonl)

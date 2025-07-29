@@ -42,8 +42,8 @@ input_path=os.environ.get('input_path')
 
 # REMOTE LLM OUTPUT AND CHECKPOINTING
 
-output_path=os.environ.get('remote_refiner_output_path')
-checkpoint_path=os.environ.get('remote_refiner_checkpoint_path')
+output_path=os.environ.get('output_path')
+checkpoint_path=os.environ.get('checkpoint_path')
 
 ####################################################################
 

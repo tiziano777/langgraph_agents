@@ -6,7 +6,6 @@ from utils.CostAnalyze import CostAnalyze
 
 from pipelines.api_disinfo_pipeline_refiner import run_pipeline 
 # from pipelines.api_disinfo_pipeline_no_refiner import run_pipeline 
-# from pipelines.api_ner_pipeline import run_pipeline 
 # from pipelines.cpp_ner_pipeline import run_pipeline 
 
 # CONFIG

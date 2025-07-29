@@ -1,4 +1,5 @@
 from pipelines.tender_ner_pipeline import run_pipeline
+
 text="""> Splošna bolnišnica Celje
 
 OBLAKOVA ULICA 5
