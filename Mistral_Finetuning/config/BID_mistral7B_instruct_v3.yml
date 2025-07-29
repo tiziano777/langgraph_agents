@@ -34,7 +34,7 @@ callback:
 # --- Configurazione Training ---
 trainer_args:
   output_dir: "models" # folder to store model checkpoints
-  
+
   per_device_train_batch_size: 4
   gradient_accumulation_steps: 1
   num_train_epochs: 10 # TRAINING EPOCHS LENGTH
@@ -87,7 +87,6 @@ grid_search:
 START_INSTRUCTION_TOKEN: "[INST]"
 END_INSTRUCTION_TOKEN: "[/INST]"
 EOS_TOKEN: </s>
-
 ##############
 
 TENDER_PROMPT: >

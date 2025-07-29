@@ -23,7 +23,7 @@ load_dotenv()
 HF_TOKEN = os.environ.get("hf_token")
 
 # --- YAML CONFIG FILE ---
-CONFIG_FILE = "config/mistral7B_instruct_v3.yml" # Assicurati che questo percorso sia corretto
+CONFIG_FILE = "config/BID_mistral7B_instruct_v3.yml" # Assicurati che questo percorso sia corretto
 
 # --- HF LOGIN ---
 if HF_TOKEN:
@@ -53,7 +53,10 @@ except yaml.YAMLError as e:
 ### CHOOSE YOUR PROMPT ### 
 # Contenuto del prompt senza i token di inizio/fine istruzione
 
-PROMPT_TEMPLATE_CONTENT = config["TENDER_PROMPT"]
+TENDER_PROMPT = config["TENDER_PROMPT"]
+BID_PROMPT = config["BID_PROMPT"]
+ORDER_PROMPT = config["ORDER_PROMPT"]
+
 
 #####################################################
 
@@ -68,6 +71,10 @@ LOAD_IN_4BIT = config["model"]["load_in_4bit"]
 
 PEFT_CONFIG = config["peft"]
 TRAINING_ARGS_DICT = config["trainer_args"]
+
+MAX_NEW_TOKENS = config['callback']['max_new_tokens']
+EVAL_NUM_EXAMPLES=config['callback']['num_examples']
+LOG_STEP_INTERVAL=config['callback']["log_steps_interval"]
 
 # --- Inizializzazione Modello e Tokenizer ---
 try:
@@ -107,6 +114,8 @@ model = FastLanguageModel.get_peft_model(
 def format_ner_example_for_training(example): # Rinominata per chiarezza
     input_text = example["text"]
     chunk_id = example["chunk_id"]
+    document_id = example["id"] # Prendi l'ID per determinare il prompt
+
 
     cleaned_ner_list = []
     for entity_dict in example["ner"]:
@@ -119,8 +128,21 @@ def format_ner_example_for_training(example): # Rinominata per chiarezza
     else:
         output_json_string = json.dumps(cleaned_ner_list, ensure_ascii=False, separators=(',', ':'))
 
+    # Determina quale prompt usare basandosi sul campo 'id'
+    if "BID" in document_id:
+        current_prompt_content = BID_PROMPT
+    elif "TENDER" in document_id:
+        current_prompt_content = TENDER_PROMPT
+    elif "ORDER" in document_id:
+        current_prompt_content = ORDER_PROMPT
+    else:
+        # Fallback o gestione di ID non previsti
+        print(f"Warning: No specific prompt found for ID: {document_id}. Using TENDER_PROMPT as default.")
+        current_prompt_content = TENDER_PROMPT # Puoi scegliere un prompt di default o sollevare un errore
+
+    
     messages = [
-        {"role": "user", "content": f"{PROMPT_TEMPLATE_CONTENT}\nUser Input:\nchunk_id: {chunk_id}\n{input_text}\nOutput:\n"},
+        {"role": "user", "content": f"{current_prompt_content}\nUser Input:\nchunk_id: {chunk_id}\n{input_text}\nOutput:\n"},
         {"role": "assistant", "content": output_json_string}
     ]
     
@@ -132,10 +154,24 @@ def format_ner_example_for_training(example): # Rinominata per chiarezza
 def format_ner_example_for_inference(example):
     input_text = example["text"]
     chunk_id = example["chunk_id"]
+    document_id = example["id"] # Prendi l'ID per determinare il prompt
 
+    # Determina quale prompt usare basandosi sul campo 'id'
+    if "BID" in document_id:
+        current_prompt_content = BID_PROMPT
+    elif "TENDER" in document_id:
+        current_prompt_content = TENDER_PROMPT
+    elif "ORDER" in document_id:
+        current_prompt_content = ORDER_PROMPT
+    else:
+        # Fallback o gestione di ID non previsti
+        print(f"Warning: No specific prompt found for ID: {document_id}. Using TENDER_PROMPT as default.")
+        current_prompt_content = TENDER_PROMPT # Puoi scegliere un prompt di default o sollevare un errore
+
+    
     # Generiamo la stringa di input esattamente come la passeremmo al modello per l'inferenza
     messages = [
-        {"role": "user", "content": f"{PROMPT_TEMPLATE_CONTENT}\nUser Input:\nchunk_id: {chunk_id}\n{input_text}"},
+        {"role": "user", "content": f"{current_prompt_content}\nUser Input:\nchunk_id: {chunk_id}\n{input_text}"},
     ]
     
     # add_generation_prompt=True aggiungerà lo spazio necessario dopo [/INST] per la generazione
@@ -156,8 +192,8 @@ def format_ner_example_for_inference(example):
     return {
         "id": example["id"],
         "chunk_id": example["chunk_id"],
-        "input_for_inference": input_for_inference,
-        "expected_output": expected_output_json_string
+        "text": input_for_inference,
+        "output": expected_output_json_string
     }
 
 # --- Caricamento e Suddivisione del Dataset ---
@@ -201,8 +237,8 @@ print(processed_train_dataset[0]["text"])
 processed_test_dataset = test_dataset.map(format_ner_example_for_inference, batched=False)
 
 # Rimuovi tutte le colonne che non sono quelle desiderate per il dataset di test finale
-# Le colonne desiderate ora sono "id", "chunk_id", "input_for_inference", "expected_output"
-columns_to_keep_test_final = ["id", "chunk_id", "input_for_inference", "expected_output"]
+# Le colonne desiderate ora sono "id", "chunk_id", "text", "output"
+columns_to_keep_test_final = ["id", "chunk_id", "text", "output"]
 columns_to_remove_test_final = [col for col in processed_test_dataset.column_names if col not in columns_to_keep_test_final]
 processed_test_dataset = processed_test_dataset.remove_columns(columns_to_remove_test_final)
 
@@ -215,7 +251,7 @@ processed_test_dataset.to_json(
 )
 
 print(f"\nTest dataset saved to: {OUTPUT_TEST_FILE_PATH}")
-print(f"\nExample of TEST dataset (id, chunk_id, input_for_inference, expected_output columns):")
+print(f"\nExample of TEST dataset (id, chunk_id, text, output columns):")
 print(processed_test_dataset[0])
 print(f"Columns in processed_test_dataset: {processed_test_dataset.column_names}")
 
@@ -229,11 +265,13 @@ TRAINING_ARGS_DICT["bf16"] = torch.cuda.is_bf16_supported()
 training_args = TrainingArguments(**TRAINING_ARGS_DICT)
 
 generation_callback = GenerationCallback(
+    info=training_args,
     model=model, 
     tokenizer=tokenizer, 
+    max_new_tokens=MAX_NEW_TOKENS,
     eval_dataset_for_inference=processed_eval_dataset, # Passa il tuo dataset di validazione processato
-    num_examples=3, # Numero di esempi da stampare ad ogni intervallo
-    log_steps_interval=10 # Ogni quanti step stampare gli esempi (regola in base alle tue esigenze)
+    num_examples=EVAL_NUM_EXAMPLES, # Numero di esempi da stampare ad ogni intervallo
+    log_steps_interval=LOG_STEP_INTERVAL # Ogni quanti step stampare gli esempi (regola in base alle tue esigenze)
 )
 
 trainer = SFTTrainer(
