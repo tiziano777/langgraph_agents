@@ -1,7 +1,7 @@
 # --- Configurazione Generale ---
 
-dataset_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_bid_ner_dataset.jsonl"
-output_test_file_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_bid_ner_test_split.jsonl"
+dataset_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_order_ner_dataset.jsonl"
+output_test_file_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_order_ner_test_split.jsonl"
 
 model_checkpoint_dir: "/home/tiziano/langgraph_agents/Mistral_Finetuning/models"
 
@@ -10,10 +10,10 @@ model_test_dir: /home/tiziano/langgraph_agents/Mistral_Finetuning/models/checkpo
 
 # --- Configurazione Inferenza ---
 inference:
-  output_results_file: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/bid_results.jsonl"
+  output_results_file: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/order_results.jsonl"
   generation_params:
     temperature: 0.1
-    max_new_tokens: 326
+    max_new_tokens: 412
     top_p: 0.3
     top_k: 10
     do_sample: True
@@ -22,19 +22,19 @@ inference:
 # --- Configurazione Modello ---
 model:
   name: "mistralai/Mistral-7B-Instruct-v0.3"
-  max_seq_length: 3000
+  max_seq_length: 3356
   load_in_4bit: false 
   dtype: "bfloat16"
 
 callback:
   log_steps_interval: 50
   num_examples: 5
-  max_new_tokens: 200
+  max_new_tokens: 412
 
 # --- Configurazione Training ---
 trainer_args:
   output_dir: "models" # folder to store model checkpoints
-
+  
   per_device_train_batch_size: 4
   gradient_accumulation_steps: 1
   num_train_epochs: 10 # TRAINING EPOCHS LENGTH
@@ -82,8 +82,8 @@ grid_search:
   lora_alpha_options: [8, 16] # Opzioni discrete per LoRA alpha
   lora_dropout: [0.0, 0.05, 0.1]
 
-# --- MISTRAL Prompt Template (può essere un'unica stringa YAML multiline) ---
 
+# --- MISTRAL Prompt Template (può essere un'unica stringa YAML multiline) ---
 START_INSTRUCTION_TOKEN: "[INST]"
 END_INSTRUCTION_TOKEN: "[/INST]"
 START_REASONING_TOKEN: "<reasoning>"

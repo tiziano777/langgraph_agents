@@ -1,0 +1,1071 @@
+================================================================================
+TRAINING ARGUMENTS:
+
+TrainingArguments(
+_n_gpu=1,
+accelerator_config={'split_batches': False, 'dispatch_batches': None, 'even_batches': True, 'use_seedable_sampler': True, 'non_blocking': False, 'gradient_accumulation_kwargs': None, 'use_configured_state': False},
+adafactor=False,
+adam_beta1=0.9,
+adam_beta2=0.999,
+adam_epsilon=1e-08,
+auto_find_batch_size=False,
+average_tokens_across_devices=False,
+batch_eval_metrics=False,
+bf16=True,
+bf16_full_eval=False,
+data_seed=None,
+dataloader_drop_last=False,
+dataloader_num_workers=0,
+dataloader_persistent_workers=False,
+dataloader_pin_memory=True,
+dataloader_prefetch_factor=None,
+ddp_backend=None,
+ddp_broadcast_buffers=None,
+ddp_bucket_cap_mb=None,
+ddp_find_unused_parameters=None,
+ddp_timeout=1800,
+debug=[],
+deepspeed=None,
+disable_tqdm=False,
+do_eval=True,
+do_predict=False,
+do_train=False,
+eval_accumulation_steps=None,
+eval_delay=0,
+eval_do_concat_batches=True,
+eval_on_start=False,
+eval_steps=5,
+eval_strategy=steps,
+eval_use_gather_object=False,
+fp16=False,
+fp16_backend=auto,
+fp16_full_eval=False,
+fp16_opt_level=O1,
+fsdp=[],
+fsdp_config={'min_num_params': 0, 'xla': False, 'xla_fsdp_v2': False, 'xla_fsdp_grad_ckpt': False},
+fsdp_min_num_params=0,
+fsdp_transformer_layer_cls_to_wrap=None,
+full_determinism=False,
+gradient_accumulation_steps=2,
+gradient_checkpointing=False,
+gradient_checkpointing_kwargs=None,
+greater_is_better=False,
+group_by_length=False,
+half_precision_backend=auto,
+hub_always_push=False,
+hub_model_id=None,
+hub_private_repo=None,
+hub_revision=None,
+hub_strategy=every_save,
+hub_token=<HUB_TOKEN>,
+ignore_data_skip=False,
+include_for_metrics=[],
+include_inputs_for_metrics=False,
+include_num_input_tokens_seen=False,
+include_tokens_per_second=False,
+jit_mode_eval=False,
+label_names=None,
+label_smoothing_factor=0.0,
+learning_rate=1e-07,
+length_column_name=length,
+liger_kernel_config=None,
+load_best_model_at_end=True,
+local_rank=0,
+log_level=passive,
+log_level_replica=warning,
+log_on_each_node=True,
+logging_dir=models/runs/Jul30_10-49-52_titan,
+logging_first_step=False,
+logging_nan_inf_filter=True,
+logging_steps=1,
+logging_strategy=steps,
+lr_scheduler_kwargs={},
+lr_scheduler_type=linear,
+max_grad_norm=1.0,
+max_steps=-1,
+metric_for_best_model=eval_loss,
+mp_parameters=,
+neftune_noise_alpha=None,
+no_cuda=False,
+num_train_epochs=15,
+optim=adamw_torch,
+optim_args=None,
+optim_target_modules=None,
+output_dir=models,
+overwrite_output_dir=False,
+past_index=-1,
+per_device_eval_batch_size=8,
+per_device_train_batch_size=4,
+prediction_loss_only=False,
+push_to_hub=False,
+push_to_hub_model_id=None,
+push_to_hub_organization=None,
+push_to_hub_token=<PUSH_TO_HUB_TOKEN>,
+ray_scope=last,
+remove_unused_columns=True,
+report_to=[],
+restore_callback_states_from_checkpoint=False,
+resume_from_checkpoint=None,
+run_name=models,
+save_on_each_node=False,
+save_only_model=False,
+save_safetensors=True,
+save_steps=10,
+save_strategy=steps,
+save_total_limit=None,
+seed=42,
+skip_memory_metrics=True,
+tf32=None,
+torch_compile=False,
+torch_compile_backend=None,
+torch_compile_mode=None,
+torch_empty_cache_steps=None,
+torchdynamo=None,
+tpu_metrics_debug=False,
+tpu_num_cores=None,
+use_cpu=False,
+use_ipex=False,
+use_legacy_prediction_loop=False,
+use_liger_kernel=False,
+use_mps_device=False,
+warmup_ratio=0.0,
+warmup_steps=200,
+weight_decay=0.0,
+)
+================================================================================
+
+
+--- Generation Examples at Step 50 ---
+
+--- Example 1 ---
+Prompt (inference input):
+avo ultrazvocnih gelov
+ Output:
+ [
+ { "TenderNumber": "45" },
+ { "TenderYear":"2023" },
+ { "TenderCode":"mvk/vh" },
+ { "TenderType": "m" }
+ ]
+
+ Example 4 (no one match)
+ Input:
+ chunk_id: 1 
+ navodila za uporabo opreme sono navedena in prilozenem dokumentu. pred montazo jih natancno preberite
+ Output:
+ []
+
+ Example 5 (no ID, multiple non-contiguous goods/services)
+ Input:
+ chunk_id: 1 
+ kontaktna oseba luka.zajc predmet javnega narocila je najem tiskalnikov per un periodo di tre anni. poleg tega bo izvedena tudi dobava kartus in papirja za vse oddelke.
+ Output:
+ [
+ { "TenderPerson": "luka zajc" },
+ ]
+ </EXAMPLES>
+
+User Input:
+chunk_id: 1
+4. izvajalec je narocniku po preventivnem in kurativnem vzdrzevalnem posegu na opremi dolz ino an podati porocilo v obliki delovnega naloga z natancnim opisom izvedenih storitev eventualni zamenjavi delov/materiala in sicer stevilo opravljenih ur (redne izredne) naziv aparata inventarna stevilka opreme oziroma aparata serijska stevilka aparata oddelek narocnika (nahajalisce aparata) kolicina in vrsta vgrajenega materiala oz. rezervnih delov cena vgrajenega materiala oz. rezervnih delov velja za popravila ki niso vkljucena v all inclusive vzdrzevanje dolzino garancijskega obdobja za vgrajene rezervne/nadomestne dele/materiala da je aparat brezhiben in varen za uporabo. 5. racun za opravljeno storitev mora vsebovati ter rac naziv opreme serijska stevilka inventarna stevilka stevilko narocilnice kot prilogo porocilo v obliki delovnega naloga z natancnim opisom izvedenih del. uni ki ne bodo imeli izkazanega protokola narocila in potrjevanja po tem clenu bodo zavrnjena. kontaktna oseba s strani narocnika; matej sinko tel. st. 041 245 823 elektronska posta matej.sinko csb celje.si ponudbe posljite na naslov elektronske poste nabaval(csb celje.si z oznako 658 2022 popravilo termodezinfektorja (m02) 10.11.2022. do 12 ure. van ja herman gril mag. manag. vodja sluzbe za nabavo medicinske opreme potrosnega materiala in storitev
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderPerson":"matej sinko"},{"TenderTel":"041 245 823"},{"TenderNumber":"658"},{"TenderYear":"2022"},{"TenderDeadline":"10.11.2022"},{"TenderPerson":"van ja herman gril"}]
+Generated Output (raw):
+[
+{
+"TenderNumber": "658",
+"TenderYear": "2022",
+"TenderCode": "mvk/vh",
+"TenderDeadline": "10.11.2022",
+"TenderType": "m",
+"TenderPerson": "Herman Gril Mag. Manag. Vodja službe za nabavo medicinske opreme potrosnega materiala in storitev",
+"TenderOrg": "CSB Celje",
+"TenderTel": "(041) 245 823",
+"TenderFax": "matej.sinko@csbcelje.si"
+}
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Example 2 ---
+Prompt (inference input):
+rilozenem dokumentu. pred montazo jih natancno preberite
+ Output:
+ []
+
+ Example 5 (no ID, multiple non-contiguous goods/services)
+ Input:
+ chunk_id: 1 
+ kontaktna oseba luka.zajc predmet javnega narocila je najem tiskalnikov per un periodo di tre anni. poleg tega bo izvedena tudi dobava kartus in papirja za vse oddelke.
+ Output:
+ [
+ { "TenderPerson": "luka zajc" },
+ ]
+ </EXAMPLES>
+
+User Input:
+chunk_id: 0
+splosna bolnisnica celje oblakova ulica 5 3000 celje tel (03) 42 33 000 fax (03) 42 33 757 postopek n 119 2023 kt/ms povabilo k oddaji ponudbe vabimo vas k oddaji ponudbe za storitev odprava ugotovljenih pomanjkljivosti v transformatorskih postajah proizvajalec obstojece opreme je schneider electric k ponudbi je potrebno priloziti dokumentacijo s katero se dokazuje ustreznost izvajalca za izvedbo del. izvajalec mora biti certificiran schneider electric partner. vec podatkov je v popisu materialov in del v prilogi 1. osnova za realizacijo storitve je prejem pisnega narocila strani narocnika. ponudbe zbiramo informativno za predlozitev v presojo odobritve. v kolikor bomo prejeli odobritev s strani pristojnih bomo realizacijo izvedli pri najugodnejsemu ponudniku. cena mora vsebovati vse stroske popuste rabate in davek na dodano vrednost. kolicine v povprasevanju so okvirne. narocnik bo storitve narocal na osnovi dejanskih potreb. narocnik se zavezuje naroceno ter dobavljeno blago placati v roku 60 dni od datuma uradnega prejema racuna oziroma v roku skladno z veljavno zakonodajo. merilo za izbora najnizja vrednost ponudbe v eur z ddv ob izpolnjevanju tehnicnih zahtev narocnika. kontaktna oseba s strani narocnika mag. matej sinko telefon 041 245 823 elektronska posta matej.sinko(0 sb celje.si ponudbe posljite na naslov elektronske poste nabava2 sb celje.si z oznako n 119 odprava ugotovljenih pomanjkljivosti v transformatorskih postajah 2023 do najkasneje 31.3.2023 do 12 ure. pripravila klavdija trunkl vodja nabavne sluzbe matjaz stinek univ. dipl. ekon.
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderOrg":"splosna bolnisnica celje"},{"TenderTel":"(03) 42 33 000"},{"TenderFax":"(03) 42 33 757"},{"TenderType":"x"},{"TenderNumber":"119"},{"TenderYear":"2023"},{"TenderCode":"kt/ms"},{"TenderDeadline":"31.03.2023"},{"TenderPerson":"matej sinko"},{"TenderPerson":"klavdija trunkl"},{"TenderPerson":"matjaz stinek"},{"TenderTel":"041 245 823"}]
+Generated Output (raw):
+[
+{
+"TenderNumber": "119",
+"TenderYear": "2023",
+"TenderCode": "kt/ms",
+"TenderDeadline": "31.3.2023",
+"TenderType": "n",
+"TenderPerson": "Matjaz Stinek",
+"TenderOrg": "Klavdija Trunkl",
+"TenderTel": "041 245 823",
+"TenderFax": "matej.sinko(0 sb celje.si",
+"TenderEmail": "matej.sinko@celje.si"
+}
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Example 3 ---
+Prompt (inference input):
+ zamenjavo plinskih vzmeti. obvezne priloge 1. v letu 2022 veljavna pisna pooblastila proizvajalcev s katerim pooblascajo zgoraj navedeni servis za servisiranje opreme in dobavo rezervnih delov. 2. izjava dana pod kazensko in materialno odgovornostjo z navedbo imen in priimkov serviserjev (pooblasceni servis mora imeti na razpolago vsaj enega serviserja) ki je usposobljen za vzdrzevanje ponujene opreme. serviserji morajo ze v casu oddaje ponudbe imeti s pooblascenim servisom sklenjeno pogodbo o zaposlitvi ali civilnopravno pogodbo o delu ali kaksno drugo civilnopravno pogodbo o sodelovanju v izjavi je potrebno navesti obliko sklenjene pogodbe in cas trajanja te pogodbe. v primeru da gre za redno zaposlenega serviserja pri pooblascenem servisu je potrebno priloziti obrazce m 1/m 2 (prijava odjava iz pokojninskega in invalidskega zavarovanja) ki dokazuje sklenjeno pogodbo o zaposlitvi. 3. certifikati o usposobljenosti za brezhibno vzdrzevanje referencne opreme izdane s strani ucnega servisnega centra proizvajalca ki so jih pridobili navedeni serviserji v izjavi iz druge tocke. pojem referencna oprema si bo narocnik tolmacil iz vidika potrebnega pridobljenega strokovnega znanja usposobljenih oseb za vzdrzevanje opreme ki je primerljiva ponujeni opremi. certifikat ne sme biti starejsi od 24 mesecev (leto izdaje najkasneje 2020). splosne zahteve osnova za realizacijo dobave je prejem pisnega narocila strani narocnika. ponudbe zbiramo informativno za predlozitev v presojo odobritve. v kolikor bomo prejeli odobritev s strani pristojnih bomo realizacijo izvedli pri najugodnejsemu ponudniku ki bo izpolnjeval tehnicne zahteve. cena mora vsebovati vse stroske popuste rabate dostavo montazo in davek na dodano vrednost. ponudbi predlozite prospekte ter drugo dokumentacijo iz katere je razvidno izpolnjevanje zahtev narocnika. rok za plaeilo je 60 dni od prejema racuna. merilo izbora najnizja vrednost ponudbe v eur z ddv ob izpolnjevanju tehnicnih zahtev narocnika.
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderOrg":"splosna bolnisnica celje"},{"TenderTel":"(03) 42 33 000"},{"TenderFax":"(03) 42 33 757"},{"TenderNumber":"309"},{"TenderYear":"2022"},{"TenderCode":"da/vh"},{"TenderType":"x"}]
+Generated Output (raw):
+[
+ { "TenderType": "n" },
+ { "TenderYear": "2020" },
+ { "TenderCode": "pojem referencna oprema" },
+ { "TenderNumber": "1" },
+ { "TenderPerson": "narocnik" },
+ { "TenderOrg": "strana narocnika" },
+ { "TenderTel": "(03) 42 33 000" },
+ { "TenderFax": "(03) 42 33 757" },
+ { "TenderDeadline": "60 dni od prejema racuna" },
+ { "TenderPrice": "najnizja vrednost ponudbe v eur z ddv ob izpolnjevanju tehnicnih zahtev narocnika" },
+ { "TenderDocuments": "ponudbe predlozite prospekte ter drugo dokumentacijo iz katere je razvidno izpolnjevanje zahtev narocnika" }
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Example 4 ---
+Prompt (inference input):
+unk_id: 0
+splosna bolnisnica celje oblakova ulica 5 3000 celje tel (03) 42 33.000 fax (08) 42 33.757 postopek n 122 2023 ms povabilo k oddajt ponudbe vabimo vas k oddaji ponudbe za predmet izvedba delavnic vescina vodenja. ponudbena cena naj vkljucuje e izvedbo delavnic na katerem bodo udelezenci pridobili potrebne kompetence za vodenje in sicer psihologija vodenja vloga vodje in stili vodenja komunikacija vodje konstruktivno resevanje konfliktov ter prepoznava razlicnosti sodelavcev dajanje in prejemanje ucinkovitih povratnih informacij ter motiviranje e predavatelj ki ima reference z izkusnjami na podrocju mehkih vescin e prilozi naj reference svojega delovanja zadnjih petih let izvedba delavnic na temo vodenja e izvajanje usposabljanja na narocnikovi lokaciji za 3 skupine (10 udelezencev) po 4 module (6 pedagoskih ur) e termin izvedbe pomlad in jesen 2023 za tocen datum se narocnik in ponudnik dogovorita po oddaji narocila e izvedbo priprav za delavnice vse materialne stroske izvajalca ter posredovanje gradiva in potrdil v elektronski obliki e izdajo potrdil o uspesno opravljenem usposabljanju. narocnik bo zagotovil e ustrezno opremljeno predavalnico za izvedbo usposabljanja v prostorih narocnika e malico in napitke za vse udelezence usposabljanja in predavatelja e notranjo organizacijo usposabljanja z obvescanjem udelezencev. cena mora vsebovati vse stroske popuste rabate in davek na dodano vrednost. narocnik se zavezuje naroceno ter dobavljeno blago placati v roku 60 dni od datuma uradnega prejema racuna oziroma v roku skladno z veljavno zakonodajo. merilo za izbor najnizja vrednost ponudbe v eur brez ddv ob izpolnjevanju tehnicnih zahtev narocnika. kontaktna oseba s strani narocnika jasna erzen tel. 03 423 30 55 e mail jasna.erzen sb celje.si ponudbe posljite na naslov elektronske poste nabava2 sb celje.si z oznako n 122 2023 izvedba delavnic vescina vodenja . do najkasneje 31.08.2023 do 12 ure. vodja nabavne sluzbe matjaz stinek univ.dipl.ekon
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderOrg":"splosna bolnisnica celje"},{"TenderTel":"(03) 42 33.000"},{"TenderFax":"(08) 42 33.757"},{"TenderType":"x"},{"TenderNumber":"122"},{"TenderYear":"2023"},{"TenderCode":"ms"},{"TenderPerson":"jasna erzen"},{"TenderTel":"03 423 30 55"},{"TenderDeadline":"31.08.2023"},{"TenderPerson":"matjaz stinek"}]
+Generated Output (raw):
+[
+{
+"TenderType": "n",
+"TenderYear": "2023",
+"TenderCode": "n 122",
+"TenderNumber": "122",
+"TenderDeadline": "31.08.2023",
+"TenderPerson": "Matjaz Stinek",
+"TenderOrg": "Univ.Dipl.Ekon",
+"TenderTel": "(03) 423 30 55",
+"TenderEmail": "jasna.erzen@celje.si",
+"TenderFax": None,
+"TenderTypeDescription": "non-medical",
+"TenderGoods": [
+{
+"GoodName": "Delavnice vedenja",
+"GoodDescription": "Vescina vodenja",
+"GoodQuantity": None,
+"GoodUnit": None,
+"GoodPrice": None
+}
+],
+"TenderServices": None,
+"TenderAddress": None,
+"TenderRemarks": None
+}
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Example 5 ---
+Prompt (inference input):
+cila potrditi prejem narocila in obvestiti narocnika o morebitno zamudi pri dobavi ali zamenjavi istovrstnega blaga. kolicine in vrste blaga po predracunu so okvirne in za narocnika niso obvezujoce. dobavitelj zagotavlja dostavo blaga ddp splosna bolnisnica celje razlozeno lekarna narocnika (v delovnem casu narocnika od ponedeljka do petka). ponudnik mora zagotavljati dobavo celotne narocene kolicine v roku najkasneje 2. delovnih dni oziroma v nujnih primerih manj po predhodnem dogovoru z narocnikom (v delovnem casu od ponedeljka do petka v delovnem casu od 7 00 do 14 00 ). narocnik se obvezuje blago prevzeti v celoti na podlagi pravilno izpolnjene dobavnice. steje se da je dobavnica pravilno izpolnjena ce vsebuje najmanj naslednje naziv artikla cena na enoto mere kolicina morebitni popust kataloska stevilka artikla dobaviteljeva sifra serijsko stevilko artikla rok uporabnosti stopnjo ddv ja stevilka narocilnice kolicinski prevzem blaga oz. pregled se opravi takoj ob prevzemu blaga. kolicinska odstopanja ki jih ni bilo moc ugotoviti ob prevzemu mora posamezni narocnik pisno reklamirati najkasneje v treh (8) delovnih dneh od prevzema. dobavljeno blago mora ustrezati dogovorjeni kakovosti ter biti v skladu s tem sporazumom in njegovimi prilogami za vsak artikel posebej. kakovostna odstopanja lahko posamezni narocnik pisno reklamira najkasneje v 30. (tridesetih) dneh od prevzema blaga. ce dobava ne ustreza naroceni kolicini in/ali kakovosti je dobavitelj dolzan pomanjkljivosti nemudoma brezplacno odpraviti. v kolikor dobavitelj napak ne odpravi v roku dveh delovnih dni od prejema reklamacije to lahko stori posamezni narocnik na stroske dobavitelja in zahteva od dobavitelja povrnitev nastale skode. kakovost blaga mora ustrezati obstojecim standardom in deklarirani kakovosti na embalazi oziroma spremljajocih dokumentih. blago mora ustrezati tudi pogojem in zahtevam opredeljenimi v razpisni dokumentaciji narocnika in strokovnim kriterijem oz. znacilnostim.
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderTel":"(03) 42 33 000"},{"TenderNumber":"242"},{"TenderYear":"2023"},{"TenderCode":"ss/vh"},{"TenderType":"m"}]
+Generated Output (raw):
+[
+{
+"TenderType": "n",
+"TenderYear": "2023",
+"TenderCode": "ss/vh",
+"TenderPerson": "Luka Zajc",
+"TenderOrg": "Splosna bolnišnica Celje",
+"TenderTel": "(03) 42 33 000",
+"TenderFax": "(03) 42 33 757",
+"TenderDeadline": "28.04.2023"
+}
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Generation Examples at Step 100 ---
+
+--- Example 1 ---
+Prompt (inference input):
+avo ultrazvocnih gelov
+ Output:
+ [
+ { "TenderNumber": "45" },
+ { "TenderYear":"2023" },
+ { "TenderCode":"mvk/vh" },
+ { "TenderType": "m" }
+ ]
+
+ Example 4 (no one match)
+ Input:
+ chunk_id: 1 
+ navodila za uporabo opreme sono navedena in prilozenem dokumentu. pred montazo jih natancno preberite
+ Output:
+ []
+
+ Example 5 (no ID, multiple non-contiguous goods/services)
+ Input:
+ chunk_id: 1 
+ kontaktna oseba luka.zajc predmet javnega narocila je najem tiskalnikov per un periodo di tre anni. poleg tega bo izvedena tudi dobava kartus in papirja za vse oddelke.
+ Output:
+ [
+ { "TenderPerson": "luka zajc" },
+ ]
+ </EXAMPLES>
+
+User Input:
+chunk_id: 1
+4. izvajalec je narocniku po preventivnem in kurativnem vzdrzevalnem posegu na opremi dolz ino an podati porocilo v obliki delovnega naloga z natancnim opisom izvedenih storitev eventualni zamenjavi delov/materiala in sicer stevilo opravljenih ur (redne izredne) naziv aparata inventarna stevilka opreme oziroma aparata serijska stevilka aparata oddelek narocnika (nahajalisce aparata) kolicina in vrsta vgrajenega materiala oz. rezervnih delov cena vgrajenega materiala oz. rezervnih delov velja za popravila ki niso vkljucena v all inclusive vzdrzevanje dolzino garancijskega obdobja za vgrajene rezervne/nadomestne dele/materiala da je aparat brezhiben in varen za uporabo. 5. racun za opravljeno storitev mora vsebovati ter rac naziv opreme serijska stevilka inventarna stevilka stevilko narocilnice kot prilogo porocilo v obliki delovnega naloga z natancnim opisom izvedenih del. uni ki ne bodo imeli izkazanega protokola narocila in potrjevanja po tem clenu bodo zavrnjena. kontaktna oseba s strani narocnika; matej sinko tel. st. 041 245 823 elektronska posta matej.sinko csb celje.si ponudbe posljite na naslov elektronske poste nabaval(csb celje.si z oznako 658 2022 popravilo termodezinfektorja (m02) 10.11.2022. do 12 ure. van ja herman gril mag. manag. vodja sluzbe za nabavo medicinske opreme potrosnega materiala in storitev
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderPerson":"matej sinko"},{"TenderTel":"041 245 823"},{"TenderNumber":"658"},{"TenderYear":"2022"},{"TenderDeadline":"10.11.2022"},{"TenderPerson":"van ja herman gril"}]
+Generated Output (raw):
+[
+{
+"TenderNumber": "658",
+"TenderYear": "2022",
+"TenderCode": "mvk/vh",
+"TenderDeadline": "10.11.2022",
+"TenderType": "m",
+"TenderPerson": "Herman Gril Mag. Manag. Vodja službe za nabavo medicinske opreme potrosnega materiala in storitev",
+"TenderOrg": "CSB Celje",
+"TenderTel": "(041) 245 823",
+"TenderFax": "matej.sinko@csbcelje.si"
+}
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Example 2 ---
+Prompt (inference input):
+rilozenem dokumentu. pred montazo jih natancno preberite
+ Output:
+ []
+
+ Example 5 (no ID, multiple non-contiguous goods/services)
+ Input:
+ chunk_id: 1 
+ kontaktna oseba luka.zajc predmet javnega narocila je najem tiskalnikov per un periodo di tre anni. poleg tega bo izvedena tudi dobava kartus in papirja za vse oddelke.
+ Output:
+ [
+ { "TenderPerson": "luka zajc" },
+ ]
+ </EXAMPLES>
+
+User Input:
+chunk_id: 0
+splosna bolnisnica celje oblakova ulica 5 3000 celje tel (03) 42 33 000 fax (03) 42 33 757 postopek n 119 2023 kt/ms povabilo k oddaji ponudbe vabimo vas k oddaji ponudbe za storitev odprava ugotovljenih pomanjkljivosti v transformatorskih postajah proizvajalec obstojece opreme je schneider electric k ponudbi je potrebno priloziti dokumentacijo s katero se dokazuje ustreznost izvajalca za izvedbo del. izvajalec mora biti certificiran schneider electric partner. vec podatkov je v popisu materialov in del v prilogi 1. osnova za realizacijo storitve je prejem pisnega narocila strani narocnika. ponudbe zbiramo informativno za predlozitev v presojo odobritve. v kolikor bomo prejeli odobritev s strani pristojnih bomo realizacijo izvedli pri najugodnejsemu ponudniku. cena mora vsebovati vse stroske popuste rabate in davek na dodano vrednost. kolicine v povprasevanju so okvirne. narocnik bo storitve narocal na osnovi dejanskih potreb. narocnik se zavezuje naroceno ter dobavljeno blago placati v roku 60 dni od datuma uradnega prejema racuna oziroma v roku skladno z veljavno zakonodajo. merilo za izbora najnizja vrednost ponudbe v eur z ddv ob izpolnjevanju tehnicnih zahtev narocnika. kontaktna oseba s strani narocnika mag. matej sinko telefon 041 245 823 elektronska posta matej.sinko(0 sb celje.si ponudbe posljite na naslov elektronske poste nabava2 sb celje.si z oznako n 119 odprava ugotovljenih pomanjkljivosti v transformatorskih postajah 2023 do najkasneje 31.3.2023 do 12 ure. pripravila klavdija trunkl vodja nabavne sluzbe matjaz stinek univ. dipl. ekon.
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderOrg":"splosna bolnisnica celje"},{"TenderTel":"(03) 42 33 000"},{"TenderFax":"(03) 42 33 757"},{"TenderType":"x"},{"TenderNumber":"119"},{"TenderYear":"2023"},{"TenderCode":"kt/ms"},{"TenderDeadline":"31.03.2023"},{"TenderPerson":"matej sinko"},{"TenderPerson":"klavdija trunkl"},{"TenderPerson":"matjaz stinek"},{"TenderTel":"041 245 823"}]
+Generated Output (raw):
+[
+{
+"TenderNumber": "119",
+"TenderYear": "2023",
+"TenderCode": "kt/ms",
+"TenderDeadline": "31.3.2023",
+"TenderType": "n",
+"TenderPerson": "Matjaz Stinek",
+"TenderOrg": "Klavdija Trunkl",
+"TenderTel": "041 245 823",
+"TenderFax": "matej.sinko(0 sb celje.si",
+"TenderEmail": "matej.sinko@celje.si"
+}
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Example 3 ---
+Prompt (inference input):
+ zamenjavo plinskih vzmeti. obvezne priloge 1. v letu 2022 veljavna pisna pooblastila proizvajalcev s katerim pooblascajo zgoraj navedeni servis za servisiranje opreme in dobavo rezervnih delov. 2. izjava dana pod kazensko in materialno odgovornostjo z navedbo imen in priimkov serviserjev (pooblasceni servis mora imeti na razpolago vsaj enega serviserja) ki je usposobljen za vzdrzevanje ponujene opreme. serviserji morajo ze v casu oddaje ponudbe imeti s pooblascenim servisom sklenjeno pogodbo o zaposlitvi ali civilnopravno pogodbo o delu ali kaksno drugo civilnopravno pogodbo o sodelovanju v izjavi je potrebno navesti obliko sklenjene pogodbe in cas trajanja te pogodbe. v primeru da gre za redno zaposlenega serviserja pri pooblascenem servisu je potrebno priloziti obrazce m 1/m 2 (prijava odjava iz pokojninskega in invalidskega zavarovanja) ki dokazuje sklenjeno pogodbo o zaposlitvi. 3. certifikati o usposobljenosti za brezhibno vzdrzevanje referencne opreme izdane s strani ucnega servisnega centra proizvajalca ki so jih pridobili navedeni serviserji v izjavi iz druge tocke. pojem referencna oprema si bo narocnik tolmacil iz vidika potrebnega pridobljenega strokovnega znanja usposobljenih oseb za vzdrzevanje opreme ki je primerljiva ponujeni opremi. certifikat ne sme biti starejsi od 24 mesecev (leto izdaje najkasneje 2020). splosne zahteve osnova za realizacijo dobave je prejem pisnega narocila strani narocnika. ponudbe zbiramo informativno za predlozitev v presojo odobritve. v kolikor bomo prejeli odobritev s strani pristojnih bomo realizacijo izvedli pri najugodnejsemu ponudniku ki bo izpolnjeval tehnicne zahteve. cena mora vsebovati vse stroske popuste rabate dostavo montazo in davek na dodano vrednost. ponudbi predlozite prospekte ter drugo dokumentacijo iz katere je razvidno izpolnjevanje zahtev narocnika. rok za plaeilo je 60 dni od prejema racuna. merilo izbora najnizja vrednost ponudbe v eur z ddv ob izpolnjevanju tehnicnih zahtev narocnika.
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderOrg":"splosna bolnisnica celje"},{"TenderTel":"(03) 42 33 000"},{"TenderFax":"(03) 42 33 757"},{"TenderNumber":"309"},{"TenderYear":"2022"},{"TenderCode":"da/vh"},{"TenderType":"x"}]
+Generated Output (raw):
+[
+ { "TenderNumber": "309" },
+ { "TenderYear": "2022" },
+ { "TenderCode": "da/vh" },
+ { "TenderDeadline": "28.04.2023" },
+ { "TenderType": "m" },
+ { "TenderPerson": "Matjaz Stinek" },
+ { "TenderOrg": "Splosna bolnisnica Celje" },
+ { "TenderTel": "(03) 42 33 000" },
+ { "TenderFax": "(03) 42 33 757" },
+ { "TenderGoods": [
+ { "GoodName": "Centrifuge Heraeus Cryofuge 6000", "GoodType": "Medical", "GoodCode": "aa/bb" },
+ { "GoodName": "Popravilo centrifuge", "GoodType": "Service", "GoodCode": "aaa/bbb" }
+ ] },
+ { "TenderServices": [
+ { "ServiceName": "Popravilo centrifuge", "ServiceType": "Service", "ServiceCode": "cc/dd" },
+ { "ServiceName": "Zamenjava plinskih vzmeti", "ServiceType": "Service", "ServiceCode": "eee/fff" }
+ ] },
+ { "T
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Example 4 ---
+Prompt (inference input):
+unk_id: 0
+splosna bolnisnica celje oblakova ulica 5 3000 celje tel (03) 42 33.000 fax (08) 42 33.757 postopek n 122 2023 ms povabilo k oddajt ponudbe vabimo vas k oddaji ponudbe za predmet izvedba delavnic vescina vodenja. ponudbena cena naj vkljucuje e izvedbo delavnic na katerem bodo udelezenci pridobili potrebne kompetence za vodenje in sicer psihologija vodenja vloga vodje in stili vodenja komunikacija vodje konstruktivno resevanje konfliktov ter prepoznava razlicnosti sodelavcev dajanje in prejemanje ucinkovitih povratnih informacij ter motiviranje e predavatelj ki ima reference z izkusnjami na podrocju mehkih vescin e prilozi naj reference svojega delovanja zadnjih petih let izvedba delavnic na temo vodenja e izvajanje usposabljanja na narocnikovi lokaciji za 3 skupine (10 udelezencev) po 4 module (6 pedagoskih ur) e termin izvedbe pomlad in jesen 2023 za tocen datum se narocnik in ponudnik dogovorita po oddaji narocila e izvedbo priprav za delavnice vse materialne stroske izvajalca ter posredovanje gradiva in potrdil v elektronski obliki e izdajo potrdil o uspesno opravljenem usposabljanju. narocnik bo zagotovil e ustrezno opremljeno predavalnico za izvedbo usposabljanja v prostorih narocnika e malico in napitke za vse udelezence usposabljanja in predavatelja e notranjo organizacijo usposabljanja z obvescanjem udelezencev. cena mora vsebovati vse stroske popuste rabate in davek na dodano vrednost. narocnik se zavezuje naroceno ter dobavljeno blago placati v roku 60 dni od datuma uradnega prejema racuna oziroma v roku skladno z veljavno zakonodajo. merilo za izbor najnizja vrednost ponudbe v eur brez ddv ob izpolnjevanju tehnicnih zahtev narocnika. kontaktna oseba s strani narocnika jasna erzen tel. 03 423 30 55 e mail jasna.erzen sb celje.si ponudbe posljite na naslov elektronske poste nabava2 sb celje.si z oznako n 122 2023 izvedba delavnic vescina vodenja . do najkasneje 31.08.2023 do 12 ure. vodja nabavne sluzbe matjaz stinek univ.dipl.ekon
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderOrg":"splosna bolnisnica celje"},{"TenderTel":"(03) 42 33.000"},{"TenderFax":"(08) 42 33.757"},{"TenderType":"x"},{"TenderNumber":"122"},{"TenderYear":"2023"},{"TenderCode":"ms"},{"TenderPerson":"jasna erzen"},{"TenderTel":"03 423 30 55"},{"TenderDeadline":"31.08.2023"},{"TenderPerson":"matjaz stinek"}]
+Generated Output (raw):
+[
+{
+"TenderType": "n",
+"TenderYear": "2023",
+"TenderCode": "n 122",
+"TenderNumber": "122",
+"TenderDeadline": "31.08.2023",
+"TenderPerson": "Matjaz Stinek",
+"TenderOrg": "Univ.Dipl.Ekon",
+"TenderTel": "(03) 423 30 55",
+"TenderEmail": "jasna.erzen@celje.si",
+"TenderFax": None,
+"TenderTypeDescription": "non-medical",
+"TenderGoods": [
+{
+"GoodName": "Delavnice vedenja",
+"GoodDescription": "Vescina vodenja",
+"GoodQuantity": None,
+"GoodUnit": None,
+"GoodPrice": None
+}
+],
+"TenderServices": [],
+"TenderAddress": None,
+"TenderAdditionalInfo": None
+}
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Example 5 ---
+Prompt (inference input):
+cila potrditi prejem narocila in obvestiti narocnika o morebitno zamudi pri dobavi ali zamenjavi istovrstnega blaga. kolicine in vrste blaga po predracunu so okvirne in za narocnika niso obvezujoce. dobavitelj zagotavlja dostavo blaga ddp splosna bolnisnica celje razlozeno lekarna narocnika (v delovnem casu narocnika od ponedeljka do petka). ponudnik mora zagotavljati dobavo celotne narocene kolicine v roku najkasneje 2. delovnih dni oziroma v nujnih primerih manj po predhodnem dogovoru z narocnikom (v delovnem casu od ponedeljka do petka v delovnem casu od 7 00 do 14 00 ). narocnik se obvezuje blago prevzeti v celoti na podlagi pravilno izpolnjene dobavnice. steje se da je dobavnica pravilno izpolnjena ce vsebuje najmanj naslednje naziv artikla cena na enoto mere kolicina morebitni popust kataloska stevilka artikla dobaviteljeva sifra serijsko stevilko artikla rok uporabnosti stopnjo ddv ja stevilka narocilnice kolicinski prevzem blaga oz. pregled se opravi takoj ob prevzemu blaga. kolicinska odstopanja ki jih ni bilo moc ugotoviti ob prevzemu mora posamezni narocnik pisno reklamirati najkasneje v treh (8) delovnih dneh od prevzema. dobavljeno blago mora ustrezati dogovorjeni kakovosti ter biti v skladu s tem sporazumom in njegovimi prilogami za vsak artikel posebej. kakovostna odstopanja lahko posamezni narocnik pisno reklamira najkasneje v 30. (tridesetih) dneh od prevzema blaga. ce dobava ne ustreza naroceni kolicini in/ali kakovosti je dobavitelj dolzan pomanjkljivosti nemudoma brezplacno odpraviti. v kolikor dobavitelj napak ne odpravi v roku dveh delovnih dni od prejema reklamacije to lahko stori posamezni narocnik na stroske dobavitelja in zahteva od dobavitelja povrnitev nastale skode. kakovost blaga mora ustrezati obstojecim standardom in deklarirani kakovosti na embalazi oziroma spremljajocih dokumentih. blago mora ustrezati tudi pogojem in zahtevam opredeljenimi v razpisni dokumentaciji narocnika in strokovnim kriterijem oz. znacilnostim.
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderTel":"(03) 42 33 000"},{"TenderNumber":"242"},{"TenderYear":"2023"},{"TenderCode":"ss/vh"},{"TenderType":"m"}]
+Generated Output (raw):
+[
+{
+"TenderType": "n",
+"TenderYear": "2023",
+"TenderCode": "ss/vh",
+"TenderDeadline": "28.04.2023",
+"TenderPerson": "Luka Zajc"
+}
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Generation Examples at Step 150 ---
+
+--- Example 1 ---
+Prompt (inference input):
+avo ultrazvocnih gelov
+ Output:
+ [
+ { "TenderNumber": "45" },
+ { "TenderYear":"2023" },
+ { "TenderCode":"mvk/vh" },
+ { "TenderType": "m" }
+ ]
+
+ Example 4 (no one match)
+ Input:
+ chunk_id: 1 
+ navodila za uporabo opreme sono navedena in prilozenem dokumentu. pred montazo jih natancno preberite
+ Output:
+ []
+
+ Example 5 (no ID, multiple non-contiguous goods/services)
+ Input:
+ chunk_id: 1 
+ kontaktna oseba luka.zajc predmet javnega narocila je najem tiskalnikov per un periodo di tre anni. poleg tega bo izvedena tudi dobava kartus in papirja za vse oddelke.
+ Output:
+ [
+ { "TenderPerson": "luka zajc" },
+ ]
+ </EXAMPLES>
+
+User Input:
+chunk_id: 1
+4. izvajalec je narocniku po preventivnem in kurativnem vzdrzevalnem posegu na opremi dolz ino an podati porocilo v obliki delovnega naloga z natancnim opisom izvedenih storitev eventualni zamenjavi delov/materiala in sicer stevilo opravljenih ur (redne izredne) naziv aparata inventarna stevilka opreme oziroma aparata serijska stevilka aparata oddelek narocnika (nahajalisce aparata) kolicina in vrsta vgrajenega materiala oz. rezervnih delov cena vgrajenega materiala oz. rezervnih delov velja za popravila ki niso vkljucena v all inclusive vzdrzevanje dolzino garancijskega obdobja za vgrajene rezervne/nadomestne dele/materiala da je aparat brezhiben in varen za uporabo. 5. racun za opravljeno storitev mora vsebovati ter rac naziv opreme serijska stevilka inventarna stevilka stevilko narocilnice kot prilogo porocilo v obliki delovnega naloga z natancnim opisom izvedenih del. uni ki ne bodo imeli izkazanega protokola narocila in potrjevanja po tem clenu bodo zavrnjena. kontaktna oseba s strani narocnika; matej sinko tel. st. 041 245 823 elektronska posta matej.sinko csb celje.si ponudbe posljite na naslov elektronske poste nabaval(csb celje.si z oznako 658 2022 popravilo termodezinfektorja (m02) 10.11.2022. do 12 ure. van ja herman gril mag. manag. vodja sluzbe za nabavo medicinske opreme potrosnega materiala in storitev
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderPerson":"matej sinko"},{"TenderTel":"041 245 823"},{"TenderNumber":"658"},{"TenderYear":"2022"},{"TenderDeadline":"10.11.2022"},{"TenderPerson":"van ja herman gril"}]
+Generated Output (raw):
+[
+{
+"TenderNumber": "658",
+"TenderYear": "2022",
+"TenderCode": "mvk/vh",
+"TenderDeadline": "10.11.2022",
+"TenderType": "m",
+"TenderPerson": "Herman Gril Mag. Manag. Vodja službe za nabavo medicinske opreme potrosnega materiala in storitev",
+"TenderOrg": "CSB Celje",
+"TenderTel": "(041) 245 823",
+"TenderFax": "matej.sinko@csbcelje.si"
+}
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Example 2 ---
+Prompt (inference input):
+rilozenem dokumentu. pred montazo jih natancno preberite
+ Output:
+ []
+
+ Example 5 (no ID, multiple non-contiguous goods/services)
+ Input:
+ chunk_id: 1 
+ kontaktna oseba luka.zajc predmet javnega narocila je najem tiskalnikov per un periodo di tre anni. poleg tega bo izvedena tudi dobava kartus in papirja za vse oddelke.
+ Output:
+ [
+ { "TenderPerson": "luka zajc" },
+ ]
+ </EXAMPLES>
+
+User Input:
+chunk_id: 0
+splosna bolnisnica celje oblakova ulica 5 3000 celje tel (03) 42 33 000 fax (03) 42 33 757 postopek n 119 2023 kt/ms povabilo k oddaji ponudbe vabimo vas k oddaji ponudbe za storitev odprava ugotovljenih pomanjkljivosti v transformatorskih postajah proizvajalec obstojece opreme je schneider electric k ponudbi je potrebno priloziti dokumentacijo s katero se dokazuje ustreznost izvajalca za izvedbo del. izvajalec mora biti certificiran schneider electric partner. vec podatkov je v popisu materialov in del v prilogi 1. osnova za realizacijo storitve je prejem pisnega narocila strani narocnika. ponudbe zbiramo informativno za predlozitev v presojo odobritve. v kolikor bomo prejeli odobritev s strani pristojnih bomo realizacijo izvedli pri najugodnejsemu ponudniku. cena mora vsebovati vse stroske popuste rabate in davek na dodano vrednost. kolicine v povprasevanju so okvirne. narocnik bo storitve narocal na osnovi dejanskih potreb. narocnik se zavezuje naroceno ter dobavljeno blago placati v roku 60 dni od datuma uradnega prejema racuna oziroma v roku skladno z veljavno zakonodajo. merilo za izbora najnizja vrednost ponudbe v eur z ddv ob izpolnjevanju tehnicnih zahtev narocnika. kontaktna oseba s strani narocnika mag. matej sinko telefon 041 245 823 elektronska posta matej.sinko(0 sb celje.si ponudbe posljite na naslov elektronske poste nabava2 sb celje.si z oznako n 119 odprava ugotovljenih pomanjkljivosti v transformatorskih postajah 2023 do najkasneje 31.3.2023 do 12 ure. pripravila klavdija trunkl vodja nabavne sluzbe matjaz stinek univ. dipl. ekon.
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderOrg":"splosna bolnisnica celje"},{"TenderTel":"(03) 42 33 000"},{"TenderFax":"(03) 42 33 757"},{"TenderType":"x"},{"TenderNumber":"119"},{"TenderYear":"2023"},{"TenderCode":"kt/ms"},{"TenderDeadline":"31.03.2023"},{"TenderPerson":"matej sinko"},{"TenderPerson":"klavdija trunkl"},{"TenderPerson":"matjaz stinek"},{"TenderTel":"041 245 823"}]
+Generated Output (raw):
+[
+{
+"TenderNumber": "119",
+"TenderYear": "2023",
+"TenderCode": "kt/ms",
+"TenderDeadline": "31.3.2023",
+"TenderType": "n",
+"TenderPerson": "Matjaz Stinek",
+"TenderOrg": "Klavdija Trunkl",
+"TenderTel": "041 245 823",
+"TenderFax": "matej.sinko(0 sb celje.si",
+"TenderEmail": "matej.sinko@celje.si"
+}
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Example 3 ---
+Prompt (inference input):
+ zamenjavo plinskih vzmeti. obvezne priloge 1. v letu 2022 veljavna pisna pooblastila proizvajalcev s katerim pooblascajo zgoraj navedeni servis za servisiranje opreme in dobavo rezervnih delov. 2. izjava dana pod kazensko in materialno odgovornostjo z navedbo imen in priimkov serviserjev (pooblasceni servis mora imeti na razpolago vsaj enega serviserja) ki je usposobljen za vzdrzevanje ponujene opreme. serviserji morajo ze v casu oddaje ponudbe imeti s pooblascenim servisom sklenjeno pogodbo o zaposlitvi ali civilnopravno pogodbo o delu ali kaksno drugo civilnopravno pogodbo o sodelovanju v izjavi je potrebno navesti obliko sklenjene pogodbe in cas trajanja te pogodbe. v primeru da gre za redno zaposlenega serviserja pri pooblascenem servisu je potrebno priloziti obrazce m 1/m 2 (prijava odjava iz pokojninskega in invalidskega zavarovanja) ki dokazuje sklenjeno pogodbo o zaposlitvi. 3. certifikati o usposobljenosti za brezhibno vzdrzevanje referencne opreme izdane s strani ucnega servisnega centra proizvajalca ki so jih pridobili navedeni serviserji v izjavi iz druge tocke. pojem referencna oprema si bo narocnik tolmacil iz vidika potrebnega pridobljenega strokovnega znanja usposobljenih oseb za vzdrzevanje opreme ki je primerljiva ponujeni opremi. certifikat ne sme biti starejsi od 24 mesecev (leto izdaje najkasneje 2020). splosne zahteve osnova za realizacijo dobave je prejem pisnega narocila strani narocnika. ponudbe zbiramo informativno za predlozitev v presojo odobritve. v kolikor bomo prejeli odobritev s strani pristojnih bomo realizacijo izvedli pri najugodnejsemu ponudniku ki bo izpolnjeval tehnicne zahteve. cena mora vsebovati vse stroske popuste rabate dostavo montazo in davek na dodano vrednost. ponudbi predlozite prospekte ter drugo dokumentacijo iz katere je razvidno izpolnjevanje zahtev narocnika. rok za plaeilo je 60 dni od prejema racuna. merilo izbora najnizja vrednost ponudbe v eur z ddv ob izpolnjevanju tehnicnih zahtev narocnika.
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderOrg":"splosna bolnisnica celje"},{"TenderTel":"(03) 42 33 000"},{"TenderFax":"(03) 42 33 757"},{"TenderNumber":"309"},{"TenderYear":"2022"},{"TenderCode":"da/vh"},{"TenderType":"x"}]
+Generated Output (raw):
+[
+ { "TenderNumber": "309" },
+ { "TenderYear": "2022" },
+ { "TenderCode": "da/vh" },
+ { "TenderDeadline": "28.04.2023" },
+ { "TenderType": "m" },
+ { "TenderPerson": "Matjaz Stinek" },
+ { "TenderOrg": "Splosna bolnisnica Celje" },
+ { "TenderTel": "(03) 42 33 000" },
+ { "TenderFax": "(03) 42 33 757" },
+ { "TenderGoods": [
+ { "GoodName": "Centrifuge Heraeus Cryofuge 6000", "GoodType": "Medical", "GoodCode": "aa/bb" },
+ { "GoodName": "Popravilo centrifuge", "GoodType": "Service", "GoodCode": "aaa/bbb" }
+ ] },
+ { "TenderServices": [
+ { "ServiceName": "Popravilo centrifuge", "ServiceType": "Service", "ServiceCode": "cc/dd" }
+ ] },
+ { "TenderRequirements": [
+ { "RequirementName": "Popravilo same centrifuge", "RequirementType": "Good" },
+ { "RequirementName
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Example 4 ---
+Prompt (inference input):
+unk_id: 0
+splosna bolnisnica celje oblakova ulica 5 3000 celje tel (03) 42 33.000 fax (08) 42 33.757 postopek n 122 2023 ms povabilo k oddajt ponudbe vabimo vas k oddaji ponudbe za predmet izvedba delavnic vescina vodenja. ponudbena cena naj vkljucuje e izvedbo delavnic na katerem bodo udelezenci pridobili potrebne kompetence za vodenje in sicer psihologija vodenja vloga vodje in stili vodenja komunikacija vodje konstruktivno resevanje konfliktov ter prepoznava razlicnosti sodelavcev dajanje in prejemanje ucinkovitih povratnih informacij ter motiviranje e predavatelj ki ima reference z izkusnjami na podrocju mehkih vescin e prilozi naj reference svojega delovanja zadnjih petih let izvedba delavnic na temo vodenja e izvajanje usposabljanja na narocnikovi lokaciji za 3 skupine (10 udelezencev) po 4 module (6 pedagoskih ur) e termin izvedbe pomlad in jesen 2023 za tocen datum se narocnik in ponudnik dogovorita po oddaji narocila e izvedbo priprav za delavnice vse materialne stroske izvajalca ter posredovanje gradiva in potrdil v elektronski obliki e izdajo potrdil o uspesno opravljenem usposabljanju. narocnik bo zagotovil e ustrezno opremljeno predavalnico za izvedbo usposabljanja v prostorih narocnika e malico in napitke za vse udelezence usposabljanja in predavatelja e notranjo organizacijo usposabljanja z obvescanjem udelezencev. cena mora vsebovati vse stroske popuste rabate in davek na dodano vrednost. narocnik se zavezuje naroceno ter dobavljeno blago placati v roku 60 dni od datuma uradnega prejema racuna oziroma v roku skladno z veljavno zakonodajo. merilo za izbor najnizja vrednost ponudbe v eur brez ddv ob izpolnjevanju tehnicnih zahtev narocnika. kontaktna oseba s strani narocnika jasna erzen tel. 03 423 30 55 e mail jasna.erzen sb celje.si ponudbe posljite na naslov elektronske poste nabava2 sb celje.si z oznako n 122 2023 izvedba delavnic vescina vodenja . do najkasneje 31.08.2023 do 12 ure. vodja nabavne sluzbe matjaz stinek univ.dipl.ekon
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderOrg":"splosna bolnisnica celje"},{"TenderTel":"(03) 42 33.000"},{"TenderFax":"(08) 42 33.757"},{"TenderType":"x"},{"TenderNumber":"122"},{"TenderYear":"2023"},{"TenderCode":"ms"},{"TenderPerson":"jasna erzen"},{"TenderTel":"03 423 30 55"},{"TenderDeadline":"31.08.2023"},{"TenderPerson":"matjaz stinek"}]
+Generated Output (raw):
+[
+{
+"TenderType": "n",
+"TenderYear": "2023",
+"TenderCode": "n 122",
+"TenderNumber": "122",
+"TenderDeadline": "31.08.2023",
+"TenderPerson": "Matjaz Stinek",
+"TenderOrg": "Univ.Dipl.Ekon",
+"TenderTel": "(03) 423 30 55",
+"TenderEmail": "jasna.erzen@celje.si",
+"TenderFax": None,
+"TenderTypeDescription": "non-medical",
+"TenderGoods": [
+{
+"GoodName": "Delavnice vedenja",
+"GoodDescription": "Vescina vodenja",
+"GoodQuantity": None,
+"GoodUnit": None,
+"GoodPrice": None
+}
+],
+"TenderServices": [],
+"TenderAddress": None,
+"TenderAdditionalInfo": None
+}
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Example 5 ---
+Prompt (inference input):
+cila potrditi prejem narocila in obvestiti narocnika o morebitno zamudi pri dobavi ali zamenjavi istovrstnega blaga. kolicine in vrste blaga po predracunu so okvirne in za narocnika niso obvezujoce. dobavitelj zagotavlja dostavo blaga ddp splosna bolnisnica celje razlozeno lekarna narocnika (v delovnem casu narocnika od ponedeljka do petka). ponudnik mora zagotavljati dobavo celotne narocene kolicine v roku najkasneje 2. delovnih dni oziroma v nujnih primerih manj po predhodnem dogovoru z narocnikom (v delovnem casu od ponedeljka do petka v delovnem casu od 7 00 do 14 00 ). narocnik se obvezuje blago prevzeti v celoti na podlagi pravilno izpolnjene dobavnice. steje se da je dobavnica pravilno izpolnjena ce vsebuje najmanj naslednje naziv artikla cena na enoto mere kolicina morebitni popust kataloska stevilka artikla dobaviteljeva sifra serijsko stevilko artikla rok uporabnosti stopnjo ddv ja stevilka narocilnice kolicinski prevzem blaga oz. pregled se opravi takoj ob prevzemu blaga. kolicinska odstopanja ki jih ni bilo moc ugotoviti ob prevzemu mora posamezni narocnik pisno reklamirati najkasneje v treh (8) delovnih dneh od prevzema. dobavljeno blago mora ustrezati dogovorjeni kakovosti ter biti v skladu s tem sporazumom in njegovimi prilogami za vsak artikel posebej. kakovostna odstopanja lahko posamezni narocnik pisno reklamira najkasneje v 30. (tridesetih) dneh od prevzema blaga. ce dobava ne ustreza naroceni kolicini in/ali kakovosti je dobavitelj dolzan pomanjkljivosti nemudoma brezplacno odpraviti. v kolikor dobavitelj napak ne odpravi v roku dveh delovnih dni od prejema reklamacije to lahko stori posamezni narocnik na stroske dobavitelja in zahteva od dobavitelja povrnitev nastale skode. kakovost blaga mora ustrezati obstojecim standardom in deklarirani kakovosti na embalazi oziroma spremljajocih dokumentih. blago mora ustrezati tudi pogojem in zahtevam opredeljenimi v razpisni dokumentaciji narocnika in strokovnim kriterijem oz. znacilnostim.
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderTel":"(03) 42 33 000"},{"TenderNumber":"242"},{"TenderYear":"2023"},{"TenderCode":"ss/vh"},{"TenderType":"m"}]
+Generated Output (raw):
+[
+{
+"TenderType": "n",
+"TenderYear": "2023",
+"TenderCode": "ss/vh",
+"TenderPerson": "Luka Zajc",
+"TenderDeadline": "10.07.2023",
+"TenderOrg": "Splosna bolnišnica Celje",
+"TenderTel": "(03) 42 33 000",
+"TenderFax": "(03) 42 33 757",
+"TenderNumber": "242",
+"Goods": [
+{
+"Name": "Dobava ultrazvocnih gelov",
+"Description": "Dobava ultrazvocnih gelov za hitri presejalni test na rotavirus",
+"Quantity": "N/A",
+"Unit": "N/A",
+"Price": "N/A"
+},
+{
+"Name": "Dobava kartus in papirja za vse oddelke",
+"Description": "Dobava kartus in papirja za vse oddelke",
+"Quantity": "N/A",
+"Unit": "N/A",
+"Price": "N/A"
+}
+],
+"Services": [
+{
+"Name": "Najem tiskalnikov per un
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Generation Examples at Step 200 ---
+
+--- Example 1 ---
+Prompt (inference input):
+avo ultrazvocnih gelov
+ Output:
+ [
+ { "TenderNumber": "45" },
+ { "TenderYear":"2023" },
+ { "TenderCode":"mvk/vh" },
+ { "TenderType": "m" }
+ ]
+
+ Example 4 (no one match)
+ Input:
+ chunk_id: 1 
+ navodila za uporabo opreme sono navedena in prilozenem dokumentu. pred montazo jih natancno preberite
+ Output:
+ []
+
+ Example 5 (no ID, multiple non-contiguous goods/services)
+ Input:
+ chunk_id: 1 
+ kontaktna oseba luka.zajc predmet javnega narocila je najem tiskalnikov per un periodo di tre anni. poleg tega bo izvedena tudi dobava kartus in papirja za vse oddelke.
+ Output:
+ [
+ { "TenderPerson": "luka zajc" },
+ ]
+ </EXAMPLES>
+
+User Input:
+chunk_id: 1
+4. izvajalec je narocniku po preventivnem in kurativnem vzdrzevalnem posegu na opremi dolz ino an podati porocilo v obliki delovnega naloga z natancnim opisom izvedenih storitev eventualni zamenjavi delov/materiala in sicer stevilo opravljenih ur (redne izredne) naziv aparata inventarna stevilka opreme oziroma aparata serijska stevilka aparata oddelek narocnika (nahajalisce aparata) kolicina in vrsta vgrajenega materiala oz. rezervnih delov cena vgrajenega materiala oz. rezervnih delov velja za popravila ki niso vkljucena v all inclusive vzdrzevanje dolzino garancijskega obdobja za vgrajene rezervne/nadomestne dele/materiala da je aparat brezhiben in varen za uporabo. 5. racun za opravljeno storitev mora vsebovati ter rac naziv opreme serijska stevilka inventarna stevilka stevilko narocilnice kot prilogo porocilo v obliki delovnega naloga z natancnim opisom izvedenih del. uni ki ne bodo imeli izkazanega protokola narocila in potrjevanja po tem clenu bodo zavrnjena. kontaktna oseba s strani narocnika; matej sinko tel. st. 041 245 823 elektronska posta matej.sinko csb celje.si ponudbe posljite na naslov elektronske poste nabaval(csb celje.si z oznako 658 2022 popravilo termodezinfektorja (m02) 10.11.2022. do 12 ure. van ja herman gril mag. manag. vodja sluzbe za nabavo medicinske opreme potrosnega materiala in storitev
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderPerson":"matej sinko"},{"TenderTel":"041 245 823"},{"TenderNumber":"658"},{"TenderYear":"2022"},{"TenderDeadline":"10.11.2022"},{"TenderPerson":"van ja herman gril"}]
+Generated Output (raw):
+[
+{
+"TenderNumber": "658",
+"TenderYear": "2022",
+"TenderCode": "mvk/vh",
+"TenderDeadline": "10.11.2022",
+"TenderType": "m",
+"TenderPerson": "Herman Gril Mag. Manag. Vodja službe za nabavo medicinske opreme potrosnega materiala in storitev",
+"TenderOrg": "CSB Celje",
+"TenderTel": "(041) 245 823",
+"TenderFax": "matej.sinko@csbcelje.si"
+}
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Example 2 ---
+Prompt (inference input):
+rilozenem dokumentu. pred montazo jih natancno preberite
+ Output:
+ []
+
+ Example 5 (no ID, multiple non-contiguous goods/services)
+ Input:
+ chunk_id: 1 
+ kontaktna oseba luka.zajc predmet javnega narocila je najem tiskalnikov per un periodo di tre anni. poleg tega bo izvedena tudi dobava kartus in papirja za vse oddelke.
+ Output:
+ [
+ { "TenderPerson": "luka zajc" },
+ ]
+ </EXAMPLES>
+
+User Input:
+chunk_id: 0
+splosna bolnisnica celje oblakova ulica 5 3000 celje tel (03) 42 33 000 fax (03) 42 33 757 postopek n 119 2023 kt/ms povabilo k oddaji ponudbe vabimo vas k oddaji ponudbe za storitev odprava ugotovljenih pomanjkljivosti v transformatorskih postajah proizvajalec obstojece opreme je schneider electric k ponudbi je potrebno priloziti dokumentacijo s katero se dokazuje ustreznost izvajalca za izvedbo del. izvajalec mora biti certificiran schneider electric partner. vec podatkov je v popisu materialov in del v prilogi 1. osnova za realizacijo storitve je prejem pisnega narocila strani narocnika. ponudbe zbiramo informativno za predlozitev v presojo odobritve. v kolikor bomo prejeli odobritev s strani pristojnih bomo realizacijo izvedli pri najugodnejsemu ponudniku. cena mora vsebovati vse stroske popuste rabate in davek na dodano vrednost. kolicine v povprasevanju so okvirne. narocnik bo storitve narocal na osnovi dejanskih potreb. narocnik se zavezuje naroceno ter dobavljeno blago placati v roku 60 dni od datuma uradnega prejema racuna oziroma v roku skladno z veljavno zakonodajo. merilo za izbora najnizja vrednost ponudbe v eur z ddv ob izpolnjevanju tehnicnih zahtev narocnika. kontaktna oseba s strani narocnika mag. matej sinko telefon 041 245 823 elektronska posta matej.sinko(0 sb celje.si ponudbe posljite na naslov elektronske poste nabava2 sb celje.si z oznako n 119 odprava ugotovljenih pomanjkljivosti v transformatorskih postajah 2023 do najkasneje 31.3.2023 do 12 ure. pripravila klavdija trunkl vodja nabavne sluzbe matjaz stinek univ. dipl. ekon.
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderOrg":"splosna bolnisnica celje"},{"TenderTel":"(03) 42 33 000"},{"TenderFax":"(03) 42 33 757"},{"TenderType":"x"},{"TenderNumber":"119"},{"TenderYear":"2023"},{"TenderCode":"kt/ms"},{"TenderDeadline":"31.03.2023"},{"TenderPerson":"matej sinko"},{"TenderPerson":"klavdija trunkl"},{"TenderPerson":"matjaz stinek"},{"TenderTel":"041 245 823"}]
+Generated Output (raw):
+[
+{
+"TenderNumber": "119",
+"TenderYear": "2023",
+"TenderCode": "kt/ms",
+"TenderDeadline": "31.3.2023",
+"TenderType": "n",
+"TenderPerson": "Matjaz Stinek",
+"TenderOrg": "Klavdija Trunkl",
+"TenderTel": "041 245 823",
+"TenderFax": "matej.sinko(0 sb celje.si",
+"TenderEmail": "matej.sinko@celje.si"
+}
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Example 3 ---
+Prompt (inference input):
+ zamenjavo plinskih vzmeti. obvezne priloge 1. v letu 2022 veljavna pisna pooblastila proizvajalcev s katerim pooblascajo zgoraj navedeni servis za servisiranje opreme in dobavo rezervnih delov. 2. izjava dana pod kazensko in materialno odgovornostjo z navedbo imen in priimkov serviserjev (pooblasceni servis mora imeti na razpolago vsaj enega serviserja) ki je usposobljen za vzdrzevanje ponujene opreme. serviserji morajo ze v casu oddaje ponudbe imeti s pooblascenim servisom sklenjeno pogodbo o zaposlitvi ali civilnopravno pogodbo o delu ali kaksno drugo civilnopravno pogodbo o sodelovanju v izjavi je potrebno navesti obliko sklenjene pogodbe in cas trajanja te pogodbe. v primeru da gre za redno zaposlenega serviserja pri pooblascenem servisu je potrebno priloziti obrazce m 1/m 2 (prijava odjava iz pokojninskega in invalidskega zavarovanja) ki dokazuje sklenjeno pogodbo o zaposlitvi. 3. certifikati o usposobljenosti za brezhibno vzdrzevanje referencne opreme izdane s strani ucnega servisnega centra proizvajalca ki so jih pridobili navedeni serviserji v izjavi iz druge tocke. pojem referencna oprema si bo narocnik tolmacil iz vidika potrebnega pridobljenega strokovnega znanja usposobljenih oseb za vzdrzevanje opreme ki je primerljiva ponujeni opremi. certifikat ne sme biti starejsi od 24 mesecev (leto izdaje najkasneje 2020). splosne zahteve osnova za realizacijo dobave je prejem pisnega narocila strani narocnika. ponudbe zbiramo informativno za predlozitev v presojo odobritve. v kolikor bomo prejeli odobritev s strani pristojnih bomo realizacijo izvedli pri najugodnejsemu ponudniku ki bo izpolnjeval tehnicne zahteve. cena mora vsebovati vse stroske popuste rabate dostavo montazo in davek na dodano vrednost. ponudbi predlozite prospekte ter drugo dokumentacijo iz katere je razvidno izpolnjevanje zahtev narocnika. rok za plaeilo je 60 dni od prejema racuna. merilo izbora najnizja vrednost ponudbe v eur z ddv ob izpolnjevanju tehnicnih zahtev narocnika.
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderOrg":"splosna bolnisnica celje"},{"TenderTel":"(03) 42 33 000"},{"TenderFax":"(03) 42 33 757"},{"TenderNumber":"309"},{"TenderYear":"2022"},{"TenderCode":"da/vh"},{"TenderType":"x"}]
+Generated Output (raw):
+[
+ { "TenderNumber": "309" },
+ { "TenderYear": "2022" },
+ { "TenderCode": "da/vh" },
+ { "TenderDeadline": "28.04.2023" },
+ { "TenderType": "m" },
+ { "TenderPerson": "Matjaz Stinek" },
+ { "TenderOrg": "Splosna bolnisnica Celje" },
+ { "TenderTel": "(03) 42 33 000" },
+ { "TenderFax": "(03) 42 33 757" },
+ { "TenderGoods": [
+ { "GoodName": "Centrifuge Heraeus Cryofuge 6000", "GoodType": "Medical", "GoodCode": "aa/bb" },
+ { "GoodName": "Popravilo centrifuge", "GoodType": "Service", "GoodCode": "aaa/bbb" }
+ ] },
+ { "TenderServices": [
+ { "ServiceName": "Popravilo centrifuge", "ServiceType": "Service", "ServiceCode": "cc/dd" },
+ { "ServiceName": "Zamenjava plinskih vzmeti", "ServiceType": "Service", "ServiceCode": "eee/fff" }
+ ] },
+ { "T
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Example 4 ---
+Prompt (inference input):
+unk_id: 0
+splosna bolnisnica celje oblakova ulica 5 3000 celje tel (03) 42 33.000 fax (08) 42 33.757 postopek n 122 2023 ms povabilo k oddajt ponudbe vabimo vas k oddaji ponudbe za predmet izvedba delavnic vescina vodenja. ponudbena cena naj vkljucuje e izvedbo delavnic na katerem bodo udelezenci pridobili potrebne kompetence za vodenje in sicer psihologija vodenja vloga vodje in stili vodenja komunikacija vodje konstruktivno resevanje konfliktov ter prepoznava razlicnosti sodelavcev dajanje in prejemanje ucinkovitih povratnih informacij ter motiviranje e predavatelj ki ima reference z izkusnjami na podrocju mehkih vescin e prilozi naj reference svojega delovanja zadnjih petih let izvedba delavnic na temo vodenja e izvajanje usposabljanja na narocnikovi lokaciji za 3 skupine (10 udelezencev) po 4 module (6 pedagoskih ur) e termin izvedbe pomlad in jesen 2023 za tocen datum se narocnik in ponudnik dogovorita po oddaji narocila e izvedbo priprav za delavnice vse materialne stroske izvajalca ter posredovanje gradiva in potrdil v elektronski obliki e izdajo potrdil o uspesno opravljenem usposabljanju. narocnik bo zagotovil e ustrezno opremljeno predavalnico za izvedbo usposabljanja v prostorih narocnika e malico in napitke za vse udelezence usposabljanja in predavatelja e notranjo organizacijo usposabljanja z obvescanjem udelezencev. cena mora vsebovati vse stroske popuste rabate in davek na dodano vrednost. narocnik se zavezuje naroceno ter dobavljeno blago placati v roku 60 dni od datuma uradnega prejema racuna oziroma v roku skladno z veljavno zakonodajo. merilo za izbor najnizja vrednost ponudbe v eur brez ddv ob izpolnjevanju tehnicnih zahtev narocnika. kontaktna oseba s strani narocnika jasna erzen tel. 03 423 30 55 e mail jasna.erzen sb celje.si ponudbe posljite na naslov elektronske poste nabava2 sb celje.si z oznako n 122 2023 izvedba delavnic vescina vodenja . do najkasneje 31.08.2023 do 12 ure. vodja nabavne sluzbe matjaz stinek univ.dipl.ekon
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderOrg":"splosna bolnisnica celje"},{"TenderTel":"(03) 42 33.000"},{"TenderFax":"(08) 42 33.757"},{"TenderType":"x"},{"TenderNumber":"122"},{"TenderYear":"2023"},{"TenderCode":"ms"},{"TenderPerson":"jasna erzen"},{"TenderTel":"03 423 30 55"},{"TenderDeadline":"31.08.2023"},{"TenderPerson":"matjaz stinek"}]
+Generated Output (raw):
+[
+{
+"TenderType": "n",
+"TenderYear": "2023",
+"TenderCode": "n 122",
+"TenderNumber": "122",
+"TenderDeadline": "31.08.2023",
+"TenderPerson": "Matjaz Stinek",
+"TenderOrg": "Univ.Dipl.Ekon",
+"TenderTel": "(03) 423 30 55",
+"TenderEmail": "jasna.erzen@celje.si",
+"TenderFax": None,
+"TenderTypeDescription": "non-medical",
+"TenderGoods": [
+{
+"GoodName": "Delavnice vedenja",
+"GoodDescription": "Vescina vodenja",
+"GoodQuantity": None,
+"GoodUnit": None,
+"GoodPrice": None
+}
+],
+"TenderServices": None,
+"TenderAddress": None,
+"TenderRemarks": None
+}
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Example 5 ---
+Prompt (inference input):
+cila potrditi prejem narocila in obvestiti narocnika o morebitno zamudi pri dobavi ali zamenjavi istovrstnega blaga. kolicine in vrste blaga po predracunu so okvirne in za narocnika niso obvezujoce. dobavitelj zagotavlja dostavo blaga ddp splosna bolnisnica celje razlozeno lekarna narocnika (v delovnem casu narocnika od ponedeljka do petka). ponudnik mora zagotavljati dobavo celotne narocene kolicine v roku najkasneje 2. delovnih dni oziroma v nujnih primerih manj po predhodnem dogovoru z narocnikom (v delovnem casu od ponedeljka do petka v delovnem casu od 7 00 do 14 00 ). narocnik se obvezuje blago prevzeti v celoti na podlagi pravilno izpolnjene dobavnice. steje se da je dobavnica pravilno izpolnjena ce vsebuje najmanj naslednje naziv artikla cena na enoto mere kolicina morebitni popust kataloska stevilka artikla dobaviteljeva sifra serijsko stevilko artikla rok uporabnosti stopnjo ddv ja stevilka narocilnice kolicinski prevzem blaga oz. pregled se opravi takoj ob prevzemu blaga. kolicinska odstopanja ki jih ni bilo moc ugotoviti ob prevzemu mora posamezni narocnik pisno reklamirati najkasneje v treh (8) delovnih dneh od prevzema. dobavljeno blago mora ustrezati dogovorjeni kakovosti ter biti v skladu s tem sporazumom in njegovimi prilogami za vsak artikel posebej. kakovostna odstopanja lahko posamezni narocnik pisno reklamira najkasneje v 30. (tridesetih) dneh od prevzema blaga. ce dobava ne ustreza naroceni kolicini in/ali kakovosti je dobavitelj dolzan pomanjkljivosti nemudoma brezplacno odpraviti. v kolikor dobavitelj napak ne odpravi v roku dveh delovnih dni od prejema reklamacije to lahko stori posamezni narocnik na stroske dobavitelja in zahteva od dobavitelja povrnitev nastale skode. kakovost blaga mora ustrezati obstojecim standardom in deklarirani kakovosti na embalazi oziroma spremljajocih dokumentih. blago mora ustrezati tudi pogojem in zahtevam opredeljenimi v razpisni dokumentaciji narocnika in strokovnim kriterijem oz. znacilnostim.
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderTel":"(03) 42 33 000"},{"TenderNumber":"242"},{"TenderYear":"2023"},{"TenderCode":"ss/vh"},{"TenderType":"m"}]
+Generated Output (raw):
+[
+{
+"TenderType": "n",
+"TenderYear": "2023",
+"TenderCode": "ss/vh",
+"TenderPerson": "Luka Zajc",
+"TenderOrg": "Splosna bolnišnica Celje",
+"TenderTel": "(03) 42 33 000",
+"TenderFax": "(03) 42 33 757",
+"TenderDeadline": "28.04.2023"
+}
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Generation Examples at Step 250 ---
+
+--- Example 1 ---
+Prompt (inference input):
+avo ultrazvocnih gelov
+ Output:
+ [
+ { "TenderNumber": "45" },
+ { "TenderYear":"2023" },
+ { "TenderCode":"mvk/vh" },
+ { "TenderType": "m" }
+ ]
+
+ Example 4 (no one match)
+ Input:
+ chunk_id: 1 
+ navodila za uporabo opreme sono navedena in prilozenem dokumentu. pred montazo jih natancno preberite
+ Output:
+ []
+
+ Example 5 (no ID, multiple non-contiguous goods/services)
+ Input:
+ chunk_id: 1 
+ kontaktna oseba luka.zajc predmet javnega narocila je najem tiskalnikov per un periodo di tre anni. poleg tega bo izvedena tudi dobava kartus in papirja za vse oddelke.
+ Output:
+ [
+ { "TenderPerson": "luka zajc" },
+ ]
+ </EXAMPLES>
+
+User Input:
+chunk_id: 1
+4. izvajalec je narocniku po preventivnem in kurativnem vzdrzevalnem posegu na opremi dolz ino an podati porocilo v obliki delovnega naloga z natancnim opisom izvedenih storitev eventualni zamenjavi delov/materiala in sicer stevilo opravljenih ur (redne izredne) naziv aparata inventarna stevilka opreme oziroma aparata serijska stevilka aparata oddelek narocnika (nahajalisce aparata) kolicina in vrsta vgrajenega materiala oz. rezervnih delov cena vgrajenega materiala oz. rezervnih delov velja za popravila ki niso vkljucena v all inclusive vzdrzevanje dolzino garancijskega obdobja za vgrajene rezervne/nadomestne dele/materiala da je aparat brezhiben in varen za uporabo. 5. racun za opravljeno storitev mora vsebovati ter rac naziv opreme serijska stevilka inventarna stevilka stevilko narocilnice kot prilogo porocilo v obliki delovnega naloga z natancnim opisom izvedenih del. uni ki ne bodo imeli izkazanega protokola narocila in potrjevanja po tem clenu bodo zavrnjena. kontaktna oseba s strani narocnika; matej sinko tel. st. 041 245 823 elektronska posta matej.sinko csb celje.si ponudbe posljite na naslov elektronske poste nabaval(csb celje.si z oznako 658 2022 popravilo termodezinfektorja (m02) 10.11.2022. do 12 ure. van ja herman gril mag. manag. vodja sluzbe za nabavo medicinske opreme potrosnega materiala in storitev
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderPerson":"matej sinko"},{"TenderTel":"041 245 823"},{"TenderNumber":"658"},{"TenderYear":"2022"},{"TenderDeadline":"10.11.2022"},{"TenderPerson":"van ja herman gril"}]
+Generated Output (raw):
+[
+ { "TenderNumber": "658" },
+ { "TenderYear": "2022" },
+ { "TenderCode": "mvk/vh" },
+ { "TenderDeadline": "10.11.2022" },
+ { "TenderType": "m" },
+ { "TenderPerson": "Herman Gril Mag. Manag. Vodja službe za nabavo medicinske opreme potrosnega materiala in storitev" },
+ { "TenderOrg": "CSB Celje" },
+ { "TenderTel": "(041) 245 823" },
+ { "TenderFax": "matej.sinko@csbcelje.si" },
+ { "TenderEmail": "matej.sinko@csbcelje.si" },
+ { "TenderUrl": "csbcelje.si" }
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Example 2 ---
+Prompt (inference input):
+rilozenem dokumentu. pred montazo jih natancno preberite
+ Output:
+ []
+
+ Example 5 (no ID, multiple non-contiguous goods/services)
+ Input:
+ chunk_id: 1 
+ kontaktna oseba luka.zajc predmet javnega narocila je najem tiskalnikov per un periodo di tre anni. poleg tega bo izvedena tudi dobava kartus in papirja za vse oddelke.
+ Output:
+ [
+ { "TenderPerson": "luka zajc" },
+ ]
+ </EXAMPLES>
+
+User Input:
+chunk_id: 0
+splosna bolnisnica celje oblakova ulica 5 3000 celje tel (03) 42 33 000 fax (03) 42 33 757 postopek n 119 2023 kt/ms povabilo k oddaji ponudbe vabimo vas k oddaji ponudbe za storitev odprava ugotovljenih pomanjkljivosti v transformatorskih postajah proizvajalec obstojece opreme je schneider electric k ponudbi je potrebno priloziti dokumentacijo s katero se dokazuje ustreznost izvajalca za izvedbo del. izvajalec mora biti certificiran schneider electric partner. vec podatkov je v popisu materialov in del v prilogi 1. osnova za realizacijo storitve je prejem pisnega narocila strani narocnika. ponudbe zbiramo informativno za predlozitev v presojo odobritve. v kolikor bomo prejeli odobritev s strani pristojnih bomo realizacijo izvedli pri najugodnejsemu ponudniku. cena mora vsebovati vse stroske popuste rabate in davek na dodano vrednost. kolicine v povprasevanju so okvirne. narocnik bo storitve narocal na osnovi dejanskih potreb. narocnik se zavezuje naroceno ter dobavljeno blago placati v roku 60 dni od datuma uradnega prejema racuna oziroma v roku skladno z veljavno zakonodajo. merilo za izbora najnizja vrednost ponudbe v eur z ddv ob izpolnjevanju tehnicnih zahtev narocnika. kontaktna oseba s strani narocnika mag. matej sinko telefon 041 245 823 elektronska posta matej.sinko(0 sb celje.si ponudbe posljite na naslov elektronske poste nabava2 sb celje.si z oznako n 119 odprava ugotovljenih pomanjkljivosti v transformatorskih postajah 2023 do najkasneje 31.3.2023 do 12 ure. pripravila klavdija trunkl vodja nabavne sluzbe matjaz stinek univ. dipl. ekon.
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderOrg":"splosna bolnisnica celje"},{"TenderTel":"(03) 42 33 000"},{"TenderFax":"(03) 42 33 757"},{"TenderType":"x"},{"TenderNumber":"119"},{"TenderYear":"2023"},{"TenderCode":"kt/ms"},{"TenderDeadline":"31.03.2023"},{"TenderPerson":"matej sinko"},{"TenderPerson":"klavdija trunkl"},{"TenderPerson":"matjaz stinek"},{"TenderTel":"041 245 823"}]
+Generated Output (raw):
+[
+{
+"TenderNumber": "119",
+"TenderYear": "2023",
+"TenderCode": "kt/ms",
+"TenderDeadline": "31.3.2023",
+"TenderType": "n",
+"TenderPerson": "Matjaz Stinek",
+"TenderOrg": "Klavdija Trunkl",
+"TenderTel": "041 245 823",
+"TenderFax": "matej.sinko(0 sb celje.si"
+}
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Example 3 ---
+Prompt (inference input):
+ zamenjavo plinskih vzmeti. obvezne priloge 1. v letu 2022 veljavna pisna pooblastila proizvajalcev s katerim pooblascajo zgoraj navedeni servis za servisiranje opreme in dobavo rezervnih delov. 2. izjava dana pod kazensko in materialno odgovornostjo z navedbo imen in priimkov serviserjev (pooblasceni servis mora imeti na razpolago vsaj enega serviserja) ki je usposobljen za vzdrzevanje ponujene opreme. serviserji morajo ze v casu oddaje ponudbe imeti s pooblascenim servisom sklenjeno pogodbo o zaposlitvi ali civilnopravno pogodbo o delu ali kaksno drugo civilnopravno pogodbo o sodelovanju v izjavi je potrebno navesti obliko sklenjene pogodbe in cas trajanja te pogodbe. v primeru da gre za redno zaposlenega serviserja pri pooblascenem servisu je potrebno priloziti obrazce m 1/m 2 (prijava odjava iz pokojninskega in invalidskega zavarovanja) ki dokazuje sklenjeno pogodbo o zaposlitvi. 3. certifikati o usposobljenosti za brezhibno vzdrzevanje referencne opreme izdane s strani ucnega servisnega centra proizvajalca ki so jih pridobili navedeni serviserji v izjavi iz druge tocke. pojem referencna oprema si bo narocnik tolmacil iz vidika potrebnega pridobljenega strokovnega znanja usposobljenih oseb za vzdrzevanje opreme ki je primerljiva ponujeni opremi. certifikat ne sme biti starejsi od 24 mesecev (leto izdaje najkasneje 2020). splosne zahteve osnova za realizacijo dobave je prejem pisnega narocila strani narocnika. ponudbe zbiramo informativno za predlozitev v presojo odobritve. v kolikor bomo prejeli odobritev s strani pristojnih bomo realizacijo izvedli pri najugodnejsemu ponudniku ki bo izpolnjeval tehnicne zahteve. cena mora vsebovati vse stroske popuste rabate dostavo montazo in davek na dodano vrednost. ponudbi predlozite prospekte ter drugo dokumentacijo iz katere je razvidno izpolnjevanje zahtev narocnika. rok za plaeilo je 60 dni od prejema racuna. merilo izbora najnizja vrednost ponudbe v eur z ddv ob izpolnjevanju tehnicnih zahtev narocnika.
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderOrg":"splosna bolnisnica celje"},{"TenderTel":"(03) 42 33 000"},{"TenderFax":"(03) 42 33 757"},{"TenderNumber":"309"},{"TenderYear":"2022"},{"TenderCode":"da/vh"},{"TenderType":"x"}]
+Generated Output (raw):
+[
+ { "TenderType": "n" },
+ { "TenderYear": "2020" },
+ { "TenderCode": "pojem referencna oprema" },
+ { "TenderNumber": "1" },
+ { "TenderPerson": "narocnik" },
+ { "TenderOrg": "strana narocnika" },
+ { "TenderTel": "(03) 42 33 000" },
+ { "TenderFax": "(03) 42 33 757" },
+ { "TenderDeadline": "60 dni od prejema racuna" },
+ { "TenderPrice": "najnizja vrednost ponudbe v eur z ddv ob izpolnjevanju tehnicnih zahtev narocnika" },
+ { "TenderDocuments": "ponudbe predlozite prospekte ter drugo dokumentacijo iz katere je razvidno izpolnjevanje zahtev narocnika" }
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Example 4 ---
+Prompt (inference input):
+unk_id: 0
+splosna bolnisnica celje oblakova ulica 5 3000 celje tel (03) 42 33.000 fax (08) 42 33.757 postopek n 122 2023 ms povabilo k oddajt ponudbe vabimo vas k oddaji ponudbe za predmet izvedba delavnic vescina vodenja. ponudbena cena naj vkljucuje e izvedbo delavnic na katerem bodo udelezenci pridobili potrebne kompetence za vodenje in sicer psihologija vodenja vloga vodje in stili vodenja komunikacija vodje konstruktivno resevanje konfliktov ter prepoznava razlicnosti sodelavcev dajanje in prejemanje ucinkovitih povratnih informacij ter motiviranje e predavatelj ki ima reference z izkusnjami na podrocju mehkih vescin e prilozi naj reference svojega delovanja zadnjih petih let izvedba delavnic na temo vodenja e izvajanje usposabljanja na narocnikovi lokaciji za 3 skupine (10 udelezencev) po 4 module (6 pedagoskih ur) e termin izvedbe pomlad in jesen 2023 za tocen datum se narocnik in ponudnik dogovorita po oddaji narocila e izvedbo priprav za delavnice vse materialne stroske izvajalca ter posredovanje gradiva in potrdil v elektronski obliki e izdajo potrdil o uspesno opravljenem usposabljanju. narocnik bo zagotovil e ustrezno opremljeno predavalnico za izvedbo usposabljanja v prostorih narocnika e malico in napitke za vse udelezence usposabljanja in predavatelja e notranjo organizacijo usposabljanja z obvescanjem udelezencev. cena mora vsebovati vse stroske popuste rabate in davek na dodano vrednost. narocnik se zavezuje naroceno ter dobavljeno blago placati v roku 60 dni od datuma uradnega prejema racuna oziroma v roku skladno z veljavno zakonodajo. merilo za izbor najnizja vrednost ponudbe v eur brez ddv ob izpolnjevanju tehnicnih zahtev narocnika. kontaktna oseba s strani narocnika jasna erzen tel. 03 423 30 55 e mail jasna.erzen sb celje.si ponudbe posljite na naslov elektronske poste nabava2 sb celje.si z oznako n 122 2023 izvedba delavnic vescina vodenja . do najkasneje 31.08.2023 do 12 ure. vodja nabavne sluzbe matjaz stinek univ.dipl.ekon
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderOrg":"splosna bolnisnica celje"},{"TenderTel":"(03) 42 33.000"},{"TenderFax":"(08) 42 33.757"},{"TenderType":"x"},{"TenderNumber":"122"},{"TenderYear":"2023"},{"TenderCode":"ms"},{"TenderPerson":"jasna erzen"},{"TenderTel":"03 423 30 55"},{"TenderDeadline":"31.08.2023"},{"TenderPerson":"matjaz stinek"}]
+Generated Output (raw):
+[
+{
+"TenderType": "n",
+"TenderYear": "2023",
+"TenderCode": "n 122",
+"TenderNumber": "122",
+"TenderDeadline": "31.08.2023",
+"TenderPerson": "Matjaz Stinek",
+"TenderOrg": "Univ.Dipl.Ekon",
+"TenderTel": "(03) 423 30 55",
+"TenderEmail": "jasna.erzen@celje.si",
+"TenderFax": None,
+"TenderTypeDescription": "non-medical",
+"TenderGoods": [
+{
+"GoodName": "Delavnice vedenja",
+"GoodDescription": "Vescina vodenja",
+"GoodQuantity": None,
+"GoodUnit": None,
+"GoodPrice": None
+}
+],
+"TenderServices": [],
+"TenderAddress": None,
+"TenderRemarks": None
+}
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)
+
+--- Example 5 ---
+Prompt (inference input):
+cila potrditi prejem narocila in obvestiti narocnika o morebitno zamudi pri dobavi ali zamenjavi istovrstnega blaga. kolicine in vrste blaga po predracunu so okvirne in za narocnika niso obvezujoce. dobavitelj zagotavlja dostavo blaga ddp splosna bolnisnica celje razlozeno lekarna narocnika (v delovnem casu narocnika od ponedeljka do petka). ponudnik mora zagotavljati dobavo celotne narocene kolicine v roku najkasneje 2. delovnih dni oziroma v nujnih primerih manj po predhodnem dogovoru z narocnikom (v delovnem casu od ponedeljka do petka v delovnem casu od 7 00 do 14 00 ). narocnik se obvezuje blago prevzeti v celoti na podlagi pravilno izpolnjene dobavnice. steje se da je dobavnica pravilno izpolnjena ce vsebuje najmanj naslednje naziv artikla cena na enoto mere kolicina morebitni popust kataloska stevilka artikla dobaviteljeva sifra serijsko stevilko artikla rok uporabnosti stopnjo ddv ja stevilka narocilnice kolicinski prevzem blaga oz. pregled se opravi takoj ob prevzemu blaga. kolicinska odstopanja ki jih ni bilo moc ugotoviti ob prevzemu mora posamezni narocnik pisno reklamirati najkasneje v treh (8) delovnih dneh od prevzema. dobavljeno blago mora ustrezati dogovorjeni kakovosti ter biti v skladu s tem sporazumom in njegovimi prilogami za vsak artikel posebej. kakovostna odstopanja lahko posamezni narocnik pisno reklamira najkasneje v 30. (tridesetih) dneh od prevzema blaga. ce dobava ne ustreza naroceni kolicini in/ali kakovosti je dobavitelj dolzan pomanjkljivosti nemudoma brezplacno odpraviti. v kolikor dobavitelj napak ne odpravi v roku dveh delovnih dni od prejema reklamacije to lahko stori posamezni narocnik na stroske dobavitelja in zahteva od dobavitelja povrnitev nastale skode. kakovost blaga mora ustrezati obstojecim standardom in deklarirani kakovosti na embalazi oziroma spremljajocih dokumentih. blago mora ustrezati tudi pogojem in zahtevam opredeljenimi v razpisni dokumentaciji narocnika in strokovnim kriterijem oz. znacilnostim.
+Output:
+[/INST]
+Ground Truth Output:
+[{"TenderTel":"(03) 42 33 000"},{"TenderNumber":"242"},{"TenderYear":"2023"},{"TenderCode":"ss/vh"},{"TenderType":"m"}]
+Generated Output (raw):
+[
+{
+"TenderType": "n",
+"TenderYear": "2023",
+"TenderCode": "ss/vh",
+"TenderDeadline": "28.04.2023",
+"TenderPerson": "Luka Zajc"
+}
+]
+JSON Output Valid: True
+JSON Match: DIFFERENCE (consider visual inspection)

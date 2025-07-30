@@ -5,6 +5,7 @@ json_repair
 pyyaml
 optuna
 mistralai
+vllm
 
 # Verifica la tua verisone di cuda con nvidia-smi, io ho nvidia CUDA toolkit 12.6
 # Procedo a instalalre pytorch con suport cu126 e unsloth con suporto cuda 12.6

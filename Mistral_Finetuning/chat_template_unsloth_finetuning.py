@@ -23,7 +23,7 @@ load_dotenv()
 HF_TOKEN = os.environ.get("hf_token")
 
 # --- YAML CONFIG FILE ---
-CONFIG_FILE = "config/BID_mistral7B_instruct_v3.yml" # Assicurati che questo percorso sia corretto
+CONFIG_FILE = "config/TENDER_mistral7B_instruct_v3.yml" # Assicurati che questo percorso sia corretto
 
 # --- HF LOGIN ---
 if HF_TOKEN:

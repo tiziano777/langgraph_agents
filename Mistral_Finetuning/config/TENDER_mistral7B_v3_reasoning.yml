@@ -1,96 +1,96 @@
 # --- Configurazione Generale ---
 
-dataset_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_bid_ner_dataset.jsonl"
-output_test_file_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_bid_ner_test_split.jsonl"
+dataset_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_tender_ner_dataset.jsonl"
+output_test_file_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_tender_ner_test_split.jsonl"
 
 model_checkpoint_dir: "/home/tiziano/langgraph_agents/Mistral_Finetuning/models"
 
-model_test_dir: /home/tiziano/langgraph_agents/Mistral_Finetuning/models/checkpoint-20
-
+model_test_dir: /home/tiziano/langgraph_agents/Mistral_Finetuning/models/checkpoint-50
 
 # --- Configurazione Inferenza ---
 inference:
-  output_results_file: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/bid_results.jsonl"
+  output_results_file: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/tender_inference_results_grpo_v1.0.jsonl"
   generation_params:
     temperature: 0.1
-    max_new_tokens: 326
-    top_p: 0.3
-    top_k: 10
-    do_sample: True
+    max_new_tokens: 400
+    top_p: 0.2
+    top_k: 8
+    do_sample: true
     repetition_penalty: 1.11
 
 # --- Configurazione Modello ---
 model:
   name: "mistralai/Mistral-7B-Instruct-v0.3"
-  max_seq_length: 3000
-  load_in_4bit: false 
+  max_seq_length: 3256
+  load_in_4bit: false  # Cambiato a true per GRPO (consigliato)
   dtype: "bfloat16"
 
-callback:
-  log_steps_interval: 50
-  num_examples: 5
-  max_new_tokens: 200
-
-# --- Configurazione Training ---
-trainer_args:
-  output_dir: "models" # folder to store model checkpoints
-
-  per_device_train_batch_size: 4
-  gradient_accumulation_steps: 1
-  num_train_epochs: 10 # TRAINING EPOCHS LENGTH
-  learning_rate: 0.0000001 # IMPORTANT TO AVOID OVERFITTING
-  warmup_steps: 100 # 50, 100, 150, 200
-
-  do_eval: true
-  eval_strategy: "steps"
-  eval_steps: 5
-  save_strategy: "steps"
-  save_steps: 10
-
-  load_best_model_at_end: true # Carica il miglior modello alla fine
-  metric_for_best_model: "eval_loss" 
-  greater_is_better: false 
-
-  logging_steps: 1
-  optim: "adamw_torch"
-  seed: 42
-  
-# Early Stopping
-early_stopping:
-  patience: 3
-  threshold: 0.01
-
-
-# --- Configurazione PEFT/LoRA (se usi Unsloth) ---
+# --- Configurazione PEFT/LoRA ---
 peft:
-  r: 16
+  r: 32  # Aumentato per GRPO (suggerito 32 dal notebook)
   target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
-  lora_alpha: 16
-  lora_dropout: 0.00 # Float
+  lora_alpha: 32  # Stesso valore di r per GRPO
+  lora_dropout: 0.0  # Zero dropout per GRPO
   bias: "none"
   use_gradient_checkpointing: "unsloth"
   random_state: 42
 
-# --- Configurazione Grid Search ---
+# --- Configurazione GRPO ---
+grpo:
+  learning_rate: 0.000005  # Learning rate specifico per GRPO (più basso)
+  adam_beta1: 0.9
+  adam_beta2: 0.99
+  weight_decay: 0.1
+  warmup_ratio: 0.1
+  lr_scheduler_type: "cosine"
+  optim: "paged_adamw_8bit"  # Ottimizzatore specifico per GRPO
+  logging_steps: 1
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 4  # Aumentato per compensare batch size piccolo
+  num_generations: 2  # Numero di generazioni per step GRPO
+  max_prompt_length: 3000   # Lunghezza massima del prompt
+  max_steps: 1000  # Numero di step per training GRPO
+  save_steps: 50  # Salva ogni 50 step
+  max_grad_norm: 0.1  # Gradient clipping per stabilità
+  report_to: "none"  # Puoi cambiare a "wandb" se usi Weights & Biases
+
+# --- Reward Functions Configuration ---
+reward_functions:
+  json_format_weight: 1.0  # Peso per reward JSON valido
+  entity_correctness_weight: 2.0  # Peso per correttezza entità (più importante)
+  entity_type_weight: 1.0  # Peso per tipi di entità validi
+  response_length_weight: 0.5  # Peso per lunghezza risposta appropriata
+
+# --- Early Stopping (non applicabile direttamente a GRPO, ma per riferimento) ---
+early_stopping:
+  patience: 5
+  threshold: 0.01
+
+# --- Configurazione Callback per Monitoring ---
+callback:
+  log_steps_interval: 10  # Ogni quanti step mostrare esempi
+  num_examples: 3  # Numero di esempi da mostrare
+  max_new_tokens: 325
+
+# --- Configurazione Grid Search (non applicabile a GRPO direttamente) ---
 grid_search:
-  num_trials: 0 # Numero di combinazioni di hyperparameters da provare
-  learning_rate_min: 0.000000002
-  learning_rate_max: 0.0000001
-  learning_rate_log: true # Ricerca in scala logaritmica
-  per_device_train_batch_size_options: [2, 4] # Opzioni discrete
-  r_options: [8, 16] # Opzioni discrete per LoRA r
-  lora_alpha_options: [8, 16] # Opzioni discrete per LoRA alpha
-  lora_dropout: [0.0, 0.05, 0.1]
+  num_trials: 0  # Disabilitato per GRPO
+  learning_rate_min: 1e-6
+  learning_rate_max: 1e-5
+  learning_rate_log: true
+  per_device_train_batch_size_options: [1, 2]
+  r_options: [16, 32]
+  lora_alpha_options: [16, 32]
+  num_generations_options: [4, 6, 8]
 
-# --- MISTRAL Prompt Template (può essere un'unica stringa YAML multiline) ---
-
+# --- MISTRAL Prompt Template Tokens ---
 START_INSTRUCTION_TOKEN: "[INST]"
 END_INSTRUCTION_TOKEN: "[/INST]"
 START_REASONING_TOKEN: "<reasoning>"
 END_REASONING_TOKEN: "</reasoning>"
 START_REASONING_ANSWER_TOKEN: "<answer>"
-START_REASONING_ANSWER_TOKEN: "</answer>"
-EOS_TOKEN: </s>
+END_REASONING_ANSWER_TOKEN: "</answer>"
+EOS_TOKEN: "</s>"
 
 ##############
 
@@ -294,85 +294,155 @@ ORDER_PROMPT: >
   </EXAMPLES>
 
 BID_PROMPT: >
-  <SCENARIO>
-  You are an NER agent for Slovenian bid documents (noisy, OCR-derived text).
+ <SCENARIO>
+  You are an NER agent for Slovenian tender documents (noisy, OCR-derived text).
   Output a JSON array per the schema.
   </SCENARIO>
+
   <RULES>
   Adapt values for OCR errors. Skip missing entities; do not hallucinate.
   Note chunk index:
+  - chunk_id = 0: usually resides above the totality of the fields
+  - chunk_id = 1: usually resides only names and deadlines, often empty
+  - Avoid repetitive occurrences.
+  </RULES>
+
+  <SCHEMA>
+  TENDER ID Fields (usually contiguous):
+  - TenderType: (n=non-medical, m=medical, x=services). Infer if missing from goods/services in chunk; ignore if none. 'm'/'x' often require inference.
+  - TenderYear: four-digit year
+  - TenderNumber: string int between 000 and 999
+  - TenderCode: code in the format 'aa/bb' or 'aaa/bb' or only 'aa', regex: ^[a-z]{2,3}(/[a-z]{2})?$ 
+
+  TENDER Fields:
+  - TenderPerson: name like "firstname lastname", may appear "firstname.lastnameOtherWords" (correct dots/irregularities)
+  - TenderOrg: free-text organization name, preserve OCR text
+  - TenderTel, TenderFax: phone numbers, format as examples (e.g. "(03) 42 33 000").
+  - TenderDeadline: date in format dd.mm.yyyy
+  </SCHEMA>
+
+  <FORMAT>
+  Output Format: List[Dict[str, str]] or empty list.
+  Return:
+  [] if no relevant entity is found
+  Otherwise, a list of dictionaries as follows:
+  [ ...
+  { "TenderNumber": "309" },
+  { "TenderDeadline":"28.04.2023" },
+  ...
+  ]
+  </FORMAT>
+
+  <EXAMPLES>
+
+  Input:
+  chunk_id: 0
+  splosna bolnisnica celje oblakova ulica 5 3000 celje tel (03) 42 33 000 fax: (03) 42 33 757 postopek 309 2022 da/vh povabilo k oddaji ponudbe narocnik vabi ponudnike
+  Output:
+  [
+  { "TenderOrg": "splosna bolnisnica celje" },
+  { "TenderTel": "(03) 42 33 000" },
+  { "TenderFax": "(03) 42 33 757" },
+  { "TenderNumber": "309" },
+  { "TenderYear": "2022" },
+  { "TenderCode": "da/vh" },
+  ]
+
+  Example 1
+  Input:
+  chunk_id: 0
+  postopek 165 2023 da/sp povabilo k oddaji ponudbe narocnik vabi ponudnike da v skladu z navodili ponudnikom izdelajo ponudbo za popravilo centrifuge heraeus cryofuge 6000 naziv aparata centrifuga proizvajalec heraeus tip cryofuge 6000 inv.st. kljuke za oddelcne lekarne do najkasneje 28.04.2023 do 12 ure. vodja nabavne sluzbe matjaz stinek.) univ.dipl.ekon
+  Output:
+  [
+  { "TenderNumber": "165" },
+  { "TenderYear": "2023" },
+  { "TenderCode": "da/sp" },
+  { "TenderDeadline": "28.04.2023" },
+  { "TenderPerson": "matjaz stinek" },
+  { "TenderType": "x"} 
+  ]
+
+  Example 2 (with dotted name, spacing in deadline, single non medical good)
+  Input:
+  chunk_id: 0
+  en n 123 2022 sp/hv rok za oddajo 10. 07. 2024 kontaktna oseba ana.novak odgovorna oseba ana.novak predmet javnega narocila: dobava pisarniskega materiala tonerjev in pisal
+  Output:
+  [
+  { "TenderNumber": "123" },
+  { "TenderYear": "2022" },
+  { "TenderCode": "sp/hv" },
+  { "TenderDeadline": "10.07.2024" },
+  { "TenderPerson": "ana novak" },
+  { "TenderType": "n" }
+  ]
+
+  Example 3
+  Input:
+  chunk_id: 0
+  dokumentacija za postopek 045 2023 mvk/vh mora biti predlozena pravocasno za dobavo ultrazvocnih gelov
+  Output:
+  [
+  { "TenderNumber": "45" },
+  { "TenderYear":"2023" },
+  { "TenderCode":"mvk/vh" },
+  { "TenderType": "m" }
+  ]
+
+  Example 4 (no one match)
+  Input:
+  chunk_id: 1 
+  navodila za uporabo opreme sono navedena in prilozenem dokumentu. pred montazo jih natancno preberite
+  Output:
+  []
+
+  Example 5 (no ID, multiple non-contiguous goods/services)
+  Input:
+  chunk_id: 1 
+  kontaktna oseba luka.zajc predmet javnega narocila je najem tiskalnikov per un periodo di tre anni. poleg tega bo izvedena tudi dobava kartus in papirja za vse oddelke.
+  Output:
+  [
+  { "TenderPerson": "luka zajc" },
+  ]
+  </EXAMPLES>
+
+  <SCENARIO>
+  You are an NER agent for Slovenian order documents (noisy, OCR-derived text).
+  Output a JSON array per the schema.
+  </SCENARIO>
+  <RULES>
+  - Adapt values for OCR errors. Skip missing entities; do not hallucinate.
+  - Avoid repetitive occurrences.
   </RULES>
   <SCHEMA>
-  BID Fields:
-  - BidId: no static format, usually a sequence of chars and numbers, see examples.
-  - BidCompanyName: free-text organization name of the bidder.
-  - BidCompanyAddress: free-text address block (retain structure; normalize special characters).
-  - BidTaxNumber: tax ID, two digits "si" (or injected "$") (e.g. "si 70365016"), note: OCR introduce '$' instead of 'si' ex si41365016 -> $41365016.
-  - BidOrderDate: date format gg.mm.aaaa
-  - TenderCompanyName: free-text organization name of the bidder.
-  - TenderCompanyAddress: free-text address block
+  Order Fields:
+  - OrderID: no static format, usually a sequence of chars and numbers, see examples.
+  - OrderCompanyName: free-text bidder organization name.
+  - OrderCompanyAddress: free-text address block (retain structure; normalize special characters).
+  - OrderTaxNumber: tax ID, two digits "si" (or injected "$") (e.g. "si 70365016"), note: OCR introduce '$' instead of 'si' ex si41365016 -> $41365016.
+  - OrderDate: date format gg.mm.aaaa
+  - OrderPerson: free-text person name.
   </SCHEMA>
   <FORMAT>
   Output: List[Dict[str,str]] or []. Generate ONLY the JSON array and then stop.
   </FORMAT>
   <EXAMPLES>
-    example 1:
-    input:
-    stran 1 od 1 ly splosna bolnisnica celje datum 17.10.2023 us lekarna - nabava st. narocila 7208739/2023 dobavitelj ime medistar d.o.o. ime splosna bolnisnica celje naslov oblakova ulica 5 kraj celje davcna st. si42119022 stran 1 od 1 splosna bolnisnica celje datum 21.08.2023 st. narocila 7206838/2023 dobavitelj medistar d.o.o. davcna st. si42119022 odobril v.d. predstojnika lekarne sandra drljic kopranovic jure bracun mag. farm.
-    output:
-    [
-      {"OrderID": "7208739/2023"},
-      { "OrderID": "7206838/2023" },
-      { "BidCompanyName": "medistar d.o.o." },
-      { "TenderCompanyName": "splosna bolnisnica celje" },
-      { "TenderCompanyAddress": "oblakova ulica 5, celje" },
-      { "OrderDate": "17.10.2023" },
-      { "OrderDate": "21.08.2023" },
-      { "OrderPerson": "sandra drljic kopranovic" },
-      { "OrderPerson": "jure bracun" },
-      { "OrderTaxNumber": "si42119022" }
-    ]
+   example 1:
+   input:
+   splosna bolnisnica celje oblakova ulica 5 3000 celje slovenija id za ddv: $ 42119022 pri-ma d.o.o. veletrgovina id za ddv: si14564564 trzaska cesta 28 1360 vrhnika slovenija narocilo: nd 23000305-800430 datum: 23.01.2023 kontakt: stanislava hocevar pahole.
+   output:
+    [
+      {"OrderID": "nd23000305-800430"},
+      {"OrderCompanyName": "pri-ma d.o.o. veletrgovina"},
+      {"OrderCompanyAddress": "trzaska cesta 28 1360 vrhnika slovenija"},
+      {"OrderTaxNumber": "si14564564"},
+      {"OrderDate": "23.01.2023"},
+      {"OrderPerson": "stanislava hocevar pahole"},
+      {"TenderCompanyName": "splosna bolnisnica celje"},
+      {"TenderCompanyAddress": "oblakova ulica 5 3000 celje slovenija"},
+      {"TenderTaxNumber": "si42119022"}
+    ]
 
-    example 2:
-    input:
-    m g-m8m trgovina d.o.o. cesta dr. jozeta pucnika 10 1290 grosuplje, slovenija id za ddv/vat no.: si16911954 ponudba podatki o kupcu splosna bolnisnica celje oblakova ulica 5 3000 celje slovenija datum dokumenta 11.01.22 nas stik klemen bizant identifikacijska st. za ddv si42119022 st. ppo22-00041-1
-    output:
-    [
-      {"BidId": "ppo22-00041-1"},
-      {"BidCompanyName": "g-m8m trgovina d.o.o."},
-      {"BidCompanyAddress": "cesta dr. jozeta pucnika 10 1290 grosuplje, slovenija"},
-      {"BidOrderDate": "11.01.2022"},
-      {"BidPerson": "klemen bizant"},
-      {"BidTaxNumber": "si16911954"},
-      {"TenderCompanyName": "splosna bolnisnica celje"},
-      {"TenderCompanyAddress": "oblakova ulica 5 3000 celje slovenija"}
-    ]
-
-    example 3:
-    input:
-    loska hladilna tehnika, inzeniring in servis, d. o. o., kidriceva cesta 66a, 4220 skofja loka, slovenija skofja loka, 11.01.2022 splosna bolnisnica celje oblakova ulica 5 3000 celje predmet: ponudba - predracun st. 21-00012 davcna stevilka: si89347889. kontakt: janez strekelj.
-    output:
-    [
-      {"BidId": "21-00012"},
-      {"BidCompanyName": "loska hladilna tehnika, inzeniring in servis, d. o. o."},
-      {"BidCompanyAddress": "kidriceva cesta 66a 4220 skofja loka, slovenija"},
-      {"BidOrderDate": "11.01.2022"},
-      {"BidPerson": "janez strekelj"},
-      {"BidTaxNumber": "si89347889"},
-      {"TenderCompanyName": "splosna bolnisnica celje"},
-      {"TenderCompanyAddress": "oblakova ulica 5 3000 celje"}
-    ]
-
-    example 4:
-    input:
-    marnel d.o.o. ulica xiv. divizije 14 si- 3000 celje id za ddv: si65179315 ponudba za vzdrzevanje ups sistemov splosna bolnisnica celje oblakova ulica 5 3000 celje postopek: 220-2022-da/vh.
-    output:
-    [
-      {"BidId": "220-2022-da/vh"},
-      {"BidCompanyName": "marnel d.o.o."},
-      {"BidCompanyAddress": "ulica xiv. divizije 14 si- 3000 celje"},
-      {"BidTaxNumber": "si65179315"},
-      {"TenderCompanyName": "splosna bolnisnica celje"},
-      {"TenderCompanyAddress": "oblakova ulica 5 3000 celje"}
-    ]
-  </EXAMPLES>
+   example 2:
+   input:
+   splosna bolnisnica celje oblakova ulica 5 3000 celje slovenija id za ddv: si42119022 miele trgovina in servis d.o.o. id za ddv: $66438004 brnciceva ulica 41g 1231 ljubljana crnuce slovenija narocilo: nd 22000867-800430 datum: 25.02.2022 kontakt: marusa vodenik.
+   output:

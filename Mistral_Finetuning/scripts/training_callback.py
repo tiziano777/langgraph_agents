@@ -8,7 +8,7 @@ import os
 class GenerationCallback(TrainerCallback):
     def __init__(self, model, tokenizer, eval_dataset_for_inference,
                  info=None,
-                 num_examples=10, log_steps_interval=20, max_new_tokens=200):
+                 num_examples=10, log_steps_interval=20, max_new_tokens=356):
 
         self.model = model
         self.tokenizer = tokenizer
@@ -85,7 +85,8 @@ class GenerationCallback(TrainerCallback):
             max_new_tokens=self.max_new_tokens,
             use_cache=True,
             temperature=0.1,
-            top_p=0.5,
+            top_p=0.3,
+            top_k=8,
             eos_token_id=self.tokenizer.eos_token_id,
             pad_token_id=self.tokenizer.pad_token_id
         )
@@ -113,7 +114,7 @@ class GenerationCallback(TrainerCallback):
                     generated_output_raw = self._generate_output(prompt)
 
                     self._log(f"\n--- Example {i+1} ---")
-                    self._log(f"Prompt (inference input):\n{prompt[-2500:]}")
+                    self._log(f"Prompt (inference input):\n{prompt[-2000:]}")
                     self._log(f"Ground Truth Output:\n{ground_truth}")
                     self._log(f"Generated Output (raw):\n{generated_output_raw}")
 

@@ -86,6 +86,10 @@ grid_search:
 # --- MISTRAL Prompt Template (può essere un'unica stringa YAML multiline) ---
 START_INSTRUCTION_TOKEN: "[INST]"
 END_INSTRUCTION_TOKEN: "[/INST]"
+START_REASONING_TOKEN: "<reasoning>"
+END_REASONING_TOKEN: "</reasoning>"
+START_REASONING_ANSWER_TOKEN: "<answer>"
+START_REASONING_ANSWER_TOKEN: "</answer>"
 EOS_TOKEN: </s>
 
 ##############
