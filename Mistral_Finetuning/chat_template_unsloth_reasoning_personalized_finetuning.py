@@ -18,23 +18,12 @@ if torch.cuda.is_available():
 else:
     print("Warning: CUDA is not available. Training will be slow.")
 
-# --- HF TOKEN ---
+# --- LOAD SECRETS ---
 load_dotenv()
-HF_TOKEN = os.environ.get("hf_token")
+#HF_TOKEN = os.environ.get("hf_token")
 
 # --- YAML CONFIG FILE ---
 CONFIG_FILE = "config/TENDER_mistral7B_v3_reasoning.yml"
-
-# --- HF LOGIN ---
-if HF_TOKEN:
-    try:
-        login(token=HF_TOKEN)
-        print("Successfully logged in to Hugging Face Hub.")
-    except Exception as e:
-        print(f"Warning: Failed to log in to Hugging Face Hub: {e}")
-        print("Please ensure your HF_TOKEN is valid and restart your environment.")
-else:
-    print("Warning: HF_TOKEN not found in environment variables. Model download/access might be limited.")
 
 # --- LOAD CONFIG ---
 try:
@@ -72,9 +61,9 @@ try:
         max_seq_length = MAX_SEQ_LENGTH,
         dtype = DTYPE,
         load_in_4bit = LOAD_IN_4BIT,
-        token = HF_TOKEN,
         fast_inference = False,
-        max_lora_rank = PEFT_CONFIG["r"]
+        max_lora_rank = PEFT_CONFIG["r"],
+        #token = HF_TOKEN,
     )
     
     if tokenizer.pad_token is None:
@@ -201,7 +190,6 @@ def is_list_of_single_key_dicts(data):
     return True
 
 # --- GRPO Reward Functions ---
-# --- Funzioni di Reward Persnalizzate ---
 
 def json_format_reward_func(completions, **kwargs) -> list[float]:
     """Reward function for valid JSON format"""
@@ -376,6 +364,7 @@ def anti_hallucination_reward_func(prompts, completions, **kwargs) -> list[float
     
     return rewards
 
+
 # --- Load and prepare dataset ---
 try:
     dataset = load_dataset("json", data_files=DATASET_PATH, split="train")
@@ -444,7 +433,12 @@ model.save_lora(f"{MODEL_CHECKPOINT_DIR}/grpo_lora")
 
 print("GRPO training finished successfully!")
 
-# --- Test the trained model ---
+
+
+# --- TEST MODEL ---
+
+from vllm import SamplingParams
+
 print("\n" + "="*50)
 print("TESTING THE TRAINED MODEL")
 print("="*50)
@@ -454,7 +448,7 @@ test_text = tokenizer.apply_chat_template([
 ], tokenize = False, add_generation_prompt = True)
 
 try:
-    from vllm import SamplingParams
+    
     sampling_params = SamplingParams(
         temperature = 0.3,
         top_p = 0.95,

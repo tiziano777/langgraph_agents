@@ -18,23 +18,14 @@ if torch.cuda.is_available():
 else:
     print("Warning: CUDA is not available. Training will be slow.")
 
-# --- HF TOKEN ---
+### --- LOAD ENV FILE SECRETS ---
+
 load_dotenv()
-HF_TOKEN = os.environ.get("hf_token")
+
+#HF_TOKEN = os.environ.get("hf_token")
 
 # --- YAML CONFIG FILE ---
 CONFIG_FILE = "config/TENDER_mistral7B_instruct_v3.yml" # Assicurati che questo percorso sia corretto
-
-# --- HF LOGIN ---
-if HF_TOKEN:
-    try:
-        login(token=HF_TOKEN)
-        print("Successfully logged in to Hugging Face Hub.")
-    except Exception as e:
-        print(f"Warning: Failed to log in to Hugging Face Hub: {e}")
-        print("Please ensure your HF_TOKEN is valid and restart your environment.")
-else:
-    print("Warning: HF_TOKEN not found in environment variables. Model download/access might be limited.")
 
 # --- LOAD CONFIG ---
 try:
@@ -48,17 +39,14 @@ except yaml.YAMLError as e:
     print(f"Error parsing YAML configuration file: {e}")
     exit()
 
-# --- Estrazione delle configurazioni ---
-
-### CHOOSE YOUR PROMPT ### 
-# Contenuto del prompt senza i token di inizio/fine istruzione
+### PROMPTS ### 
 
 TENDER_PROMPT = config["TENDER_PROMPT"]
 BID_PROMPT = config["BID_PROMPT"]
 ORDER_PROMPT = config["ORDER_PROMPT"]
 
 
-#####################################################
+# --- CONFIG FILE SETTINGS ---
 
 DATASET_PATH = config["dataset_path"]
 OUTPUT_TEST_FILE_PATH = config["output_test_file_path"]
@@ -83,7 +71,7 @@ try:
         max_seq_length = MAX_SEQ_LENGTH,
         dtype = DTYPE,
         load_in_4bit = LOAD_IN_4BIT,
-        token = HF_TOKEN,
+        #token=HF_TOKEN
     )
     # Imposta il pad_token_id per il tokenizer, spesso utile per il training
     if tokenizer.pad_token is None:
@@ -110,7 +98,8 @@ model = FastLanguageModel.get_peft_model(
     max_seq_length = MAX_SEQ_LENGTH,
 )
 
-# --- Funzione di Formattazione per Training/Validation Dataset ---
+# --- TRAINING DATA PROCESSING: Funzione di Formattazione per Training/Validation Dataset ---
+
 def format_ner_example_for_training(example): # Rinominata per chiarezza
     input_text = example["text"]
     chunk_id = example["chunk_id"]
@@ -150,7 +139,7 @@ def format_ner_example_for_training(example): # Rinominata per chiarezza
     
     return {"text": formatted_text}
 
-# --- Funzione per Preparare il Dataset di Test per l'Inferenza ---
+# --- INFERNCE DATA PROCESSING: Funzione per Preparare il Dataset di Test per l'Inferenza ---
 def format_ner_example_for_inference(example):
     input_text = example["text"]
     chunk_id = example["chunk_id"]
@@ -196,7 +185,8 @@ def format_ner_example_for_inference(example):
         "output": expected_output_json_string
     }
 
-# --- Caricamento e Suddivisione del Dataset ---
+
+# --- SPLIT TRAIN/EVAL/TEST Dataset ---
 try:
     dataset = load_dataset("json", data_files=DATASET_PATH, split="train")
     print(f"Dataset loaded from: {DATASET_PATH}")
@@ -217,7 +207,8 @@ print(f"Training Dataset size: {len(train_dataset)} examples")
 print(f"Validation Dataset size: {len(eval_dataset)} examples")
 print(f"Test Dataset size: {len(test_dataset)} examples")
 
-# --- Preparazione Dataset per Training e Validation ---
+# --- TRAIN/VALIDATION PREPARATION ---
+
 # Qui si applica format_ner_example_for_training
 processed_train_dataset = train_dataset.map(format_ner_example_for_training, batched=False)
 processed_eval_dataset = eval_dataset.map(format_ner_example_for_training, batched=False)
@@ -232,8 +223,9 @@ print("\nExample of 'text' column formatted for TRAINING (input+output):")
 print(processed_train_dataset[0]["text"])
 
 
-# --- Preparazione Dataset per Test (con colonne separate) ---
-# Applichiamo SOLO format_ner_example_for_inference al test_dataset originale
+# --- TEST DATASET PREPARATION ---
+
+# Applichiamo format_ner_example_for_inference al test_dataset originale
 processed_test_dataset = test_dataset.map(format_ner_example_for_inference, batched=False)
 
 # Rimuovi tutte le colonne che non sono quelle desiderate per il dataset di test finale
@@ -242,7 +234,7 @@ columns_to_keep_test_final = ["id", "chunk_id", "text", "output"]
 columns_to_remove_test_final = [col for col in processed_test_dataset.column_names if col not in columns_to_keep_test_final]
 processed_test_dataset = processed_test_dataset.remove_columns(columns_to_remove_test_final)
 
-# Salva il dataset di test formattato
+# SAVE TEST DATASET FOR LATER
 processed_test_dataset.to_json(
     OUTPUT_TEST_FILE_PATH,
     orient="records",
@@ -256,9 +248,9 @@ print(processed_test_dataset[0])
 print(f"Columns in processed_test_dataset: {processed_test_dataset.column_names}")
 
 
-# --- Inizializzazione Trainer ---
-# Imposta i parametri di precisione dinamicamente per TrainingArguments
+# --- TRAINER SETUP ---
 
+# Imposta i parametri di precisione dinamicamente per TrainingArguments
 TRAINING_ARGS_DICT["fp16"] = not torch.cuda.is_bf16_supported()
 TRAINING_ARGS_DICT["bf16"] = torch.cuda.is_bf16_supported()
 

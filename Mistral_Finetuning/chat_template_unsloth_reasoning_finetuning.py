@@ -6,8 +6,9 @@ from dotenv import load_dotenv
 import os
 from unsloth import FastLanguageModel
 from trl import GRPOConfig, GRPOTrainer
-from datasets import load_dataset, Dataset
+from datasets import load_dataset
 from huggingface_hub import login
+from json_repair import repair_json
 
 # --- CUDA ---
 print(f"Torch version: {torch.__version__}")
@@ -19,21 +20,10 @@ else:
 
 # --- HF TOKEN ---
 load_dotenv()
-HF_TOKEN = os.environ.get("hf_token")
+#HF_TOKEN = os.environ.get("hf_token")
 
 # --- YAML CONFIG FILE ---
 CONFIG_FILE = "config/TENDER_mistral7B_v3_reasoning.yml"
-
-# --- HF LOGIN ---
-if HF_TOKEN:
-    try:
-        login(token=HF_TOKEN)
-        print("Successfully logged in to Hugging Face Hub.")
-    except Exception as e:
-        print(f"Warning: Failed to log in to Hugging Face Hub: {e}")
-        print("Please ensure your HF_TOKEN is valid and restart your environment.")
-else:
-    print("Warning: HF_TOKEN not found in environment variables. Model download/access might be limited.")
 
 # --- LOAD CONFIG ---
 try:
@@ -46,6 +36,7 @@ except FileNotFoundError:
 except yaml.YAMLError as e:
     print(f"Error parsing YAML configuration file: {e}")
     exit()
+    
 
 # --- Extract configurations ---
 DATASET_PATH = config["dataset_path"]
@@ -70,9 +61,9 @@ try:
         max_seq_length = MAX_SEQ_LENGTH,
         dtype = DTYPE,
         load_in_4bit = LOAD_IN_4BIT,
-        token = HF_TOKEN,
         fast_inference = False,  # Enable vLLM fast inference for GRPO
-        max_lora_rank = PEFT_CONFIG["r"]
+        max_lora_rank = PEFT_CONFIG["r"],
+        #token = HF_TOKEN
     )
     
     if tokenizer.pad_token is None:
@@ -106,30 +97,23 @@ def is_valid_json(text: str) -> bool:
     except:
         return False
 
-def extract_json_from_response(text: str) -> str:
-    """Extract JSON array from model response"""
-    # Look for JSON array patterns
-    import re
-    
-    # Try to find JSON array in the text
-    json_pattern = r'\[.*?\]'
-    matches = re.findall(json_pattern, text, re.DOTALL)
-    
-    if matches:
-        # Return the first valid JSON array found
-        for match in matches:
-            if is_valid_json(match):
-                return match
-    
-    # If no valid JSON found, try to extract just the content
-    lines = text.strip().split('\n')
-    for line in lines:
-        line = line.strip()
-        if line.startswith('[') and line.endswith(']'):
-            if is_valid_json(line):
-                return line
-    
-    return "[]"  # Default empty array
+def extract_json_from_response(json_text: str) -> list:
+    """
+    Ripara e deserializza l'output JSON generato da LLM. Restituisce una lista oppure {} in caso di errore.
+    """
+    try:
+        print("json text: ", json_text)
+        repaired_text = repair_json(json_text)
+            
+        parsed_json = json.loads(repaired_text)
+
+        if not isinstance(parsed_json, list):
+            raise ValueError("Parsed JSON is not a list")
+
+        return parsed_json
+
+    except Exception as e:
+        return e
 
 def validate_ner_entities(json_str: str, expected_entities: list) -> bool:
     """Validate if extracted entities match expected format"""
@@ -192,6 +176,7 @@ def format_ner_example_for_grpo(example):
     }
 
 # --- GRPO Reward Functions ---
+
 def json_format_reward_func(completions, **kwargs) -> list[float]:
     """Reward function for valid JSON format"""
     responses = [completion[0]['content'] for completion in completions]
@@ -318,7 +303,8 @@ def response_length_reward_func(completions, **kwargs) -> list[float]:
     
     return rewards
 
-# --- Load and prepare dataset ---
+
+# --- LOAD AND SPLIT DATASET ---
 try:
     dataset = load_dataset("json", data_files=DATASET_PATH, split="train")
     print(f"Dataset loaded from: {DATASET_PATH}")
@@ -326,7 +312,7 @@ except Exception as e:
     print(f"Error loading dataset from {DATASET_PATH}: {e}")
     exit()
 
-# Split dataset
+# SPLIT
 train_split = dataset.train_test_split(test_size=0.1, seed=PEFT_CONFIG["random_state"])
 train_dataset = train_split["train"]
 
@@ -382,7 +368,12 @@ model.save_lora(f"{MODEL_CHECKPOINT_DIR}/grpo_lora")
 
 print("GRPO training finished successfully!")
 
-# --- Test the trained model ---
+
+
+
+# --- TEST THE MODEL ---
+from vllm import SamplingParams
+
 print("\n" + "="*50)
 print("TESTING THE TRAINED MODEL")
 print("="*50)
@@ -392,7 +383,7 @@ test_text = tokenizer.apply_chat_template([
     {"role": "user", "content": f"{TENDER_PROMPT}\nUser Input:\nchunk_id: 0\npostopek 165 2023 da/sp povabilo k oddaji ponudbe narocnik vabi ponudnike da v skladu z navodili ponudnikom izdelajo ponudbo za popravilo centrifuge heraeus cryofuge 6000 naziv aparata centrifuga proizvajalec heraeus tip cryofuge 6000 inv.st. kljuke za oddelcne lekarne do najkasneje 28.04.2023 do 12 ure. vodja nabavne sluzbe matjaz stinek.) univ.dipl.ekon\nOutput:\n"}
 ], tokenize = False, add_generation_prompt = True)
 
-from vllm import SamplingParams
+
 sampling_params = SamplingParams(
     temperature = 0.3,
     top_p = 0.95,
