@@ -32,7 +32,7 @@ else:
     print("Warning: HF_TOKEN not found in environment variables. Model download/access might be limited.")
 
 # --- Load Configuration ---
-CONFIG_FILE = "config/BID_mistral7B_instruct_v3.yml"
+CONFIG_FILE = "config/mistral7B_instruct_v3.yml"
 try:
     with open(CONFIG_FILE, 'r') as f:
         config = yaml.safe_load(f)

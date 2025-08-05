@@ -23,7 +23,7 @@ load_dotenv()
 #HF_TOKEN = os.environ.get("hf_token")
 
 # --- YAML CONFIG FILE ---
-CONFIG_FILE = "config/TENDER_mistral7B_v3_reasoning.yml"
+CONFIG_FILE = "config/mistral7B_instruct_v3_reasoning.yml"
 
 # --- LOAD CONFIG ---
 try:

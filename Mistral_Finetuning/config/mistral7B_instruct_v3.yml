@@ -1,45 +1,45 @@
 # --- Configurazione Generale ---
 
-dataset_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_bid_ner_dataset.jsonl"
-output_test_file_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_bid_ner_test_split.jsonl"
+dataset_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_tender_ner_dataset.jsonl"
+output_test_file_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_tender_ner_test_split.jsonl"
 
 model_checkpoint_dir: "/home/tiziano/langgraph_agents/Mistral_Finetuning/models"
 
-model_test_dir: /home/tiziano/langgraph_agents/Mistral_Finetuning/models/checkpoint-20
+model_test_dir: /home/tiziano/langgraph_agents/Mistral_Finetuning/models/checkpoint-100
 
 
 # --- Configurazione Inferenza ---
 inference:
-  output_results_file: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/bid_results.jsonl"
+  output_results_file: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/tender_inference_results_v1.4.jsonl"
   generation_params:
     temperature: 0.1
-    max_new_tokens: 350
+    max_new_tokens: 325
     top_p: 0.2
     top_k: 8
-    do_sample: False
+    do_sample: true
     repetition_penalty: 1.11
 
 # --- Configurazione Modello ---
 model:
   name: "mistralai/Mistral-7B-Instruct-v0.3"
-  max_seq_length: 3156
+  max_seq_length: 3000
   load_in_4bit: false 
   dtype: "bfloat16"
 
 callback:
   log_steps_interval: 50
   num_examples: 5
-  max_new_tokens: 200
+  max_new_tokens: 325
 
 # --- Configurazione Training ---
 trainer_args:
   output_dir: "models" # folder to store model checkpoints
   
   per_device_train_batch_size: 4
-  gradient_accumulation_steps: 1
-  num_train_epochs: 10 # TRAINING EPOCHS LENGTH
+  gradient_accumulation_steps: 2
+  num_train_epochs: 15 # TRAINING EPOCHS LENGTH
   learning_rate: 0.0000001 # IMPORTANT TO AVOID OVERFITTING
-  warmup_steps: 100 # 50, 100, 150, 200
+  warmup_steps: 200 # 50, 100, 150, 200
 
   do_eval: true
   eval_strategy: "steps"
@@ -58,7 +58,7 @@ trainer_args:
 # Early Stopping
 early_stopping:
   patience: 3
-  threshold: 0.001
+  threshold: 0.01
 
 
 # --- Configurazione PEFT/LoRA (se usi Unsloth) ---

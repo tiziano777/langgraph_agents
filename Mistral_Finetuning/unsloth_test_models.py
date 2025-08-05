@@ -13,7 +13,7 @@ load_dotenv()
 hf_token = os.environ.get("hf_token")
 
 # --- Caricamento Configurazione da YAML ---
-CONFIG_FILE = "config/TENDER_mistral7B_instruct_v3.yml"
+CONFIG_FILE = "config/mistral7B_instruct_v3.yml"
 try:
     with open(CONFIG_FILE, 'r') as f:
         config = yaml.safe_load(f)

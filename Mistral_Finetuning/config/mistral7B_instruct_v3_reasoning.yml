@@ -1,98 +1,104 @@
 # --- Configurazione Generale ---
 
-dataset_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_bid_ner_dataset.jsonl"
-output_test_file_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_bid_ner_test_split.jsonl"
+dataset_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_tender_ner_dataset.jsonl"
+output_test_file_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_tender_ner_test_split.jsonl"
 
 model_checkpoint_dir: "/home/tiziano/langgraph_agents/Mistral_Finetuning/models"
 
-model_test_dir: /home/tiziano/langgraph_agents/Mistral_Finetuning/models/checkpoint-20
-
+model_test_dir: /home/tiziano/langgraph_agents/Mistral_Finetuning/models/checkpoint-300
 
 # --- Configurazione Inferenza ---
 inference:
-  output_results_file: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/bid_results.jsonl"
+  output_results_file: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/tender_inference_results_grpo_v1.0.jsonl"
   generation_params:
-    temperature: 0.1
-    max_new_tokens: 326
-    top_p: 0.3
-    top_k: 10
-    do_sample: True
+    temperature: 0.05
+    max_new_tokens: 400
+    top_p: 0.2
+    top_k: 8
+    do_sample: true
     repetition_penalty: 1.11
 
 # --- Configurazione Modello ---
 model:
   name: "mistralai/Mistral-7B-Instruct-v0.3"
-  max_seq_length: 3000
-  load_in_4bit: false 
+  max_seq_length: 3256
+  load_in_4bit: false  # Cambiato a true per GRPO (consigliato)
   dtype: "bfloat16"
 
-callback:
-  log_steps_interval: 50
-  num_examples: 5
-  max_new_tokens: 200
-
-# --- Configurazione Training ---
-trainer_args:
-  output_dir: "models" # folder to store model checkpoints
-
-  per_device_train_batch_size: 4
-  gradient_accumulation_steps: 1
-  num_train_epochs: 10 # TRAINING EPOCHS LENGTH
-  learning_rate: 0.0000001 # IMPORTANT TO AVOID OVERFITTING
-  warmup_steps: 100 # 50, 100, 150, 200
-
-  do_eval: true
-  eval_strategy: "steps"
-  eval_steps: 5
-  save_strategy: "steps"
-  save_steps: 10
-
-  load_best_model_at_end: true # Carica il miglior modello alla fine
-  metric_for_best_model: "eval_loss" 
-  greater_is_better: false 
-
-  logging_steps: 1
-  optim: "adamw_torch"
-  seed: 42
-  
-# Early Stopping
-early_stopping:
-  patience: 3
-  threshold: 0.01
-
-
-# --- Configurazione PEFT/LoRA (se usi Unsloth) ---
+# --- Configurazione PEFT/LoRA ---
 peft:
-  r: 16
+  r: 32  # Aumentato per GRPO (suggerito 32 dal notebook)
   target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
-  lora_alpha: 16
-  lora_dropout: 0.00 # Float
+  lora_alpha: 32  # Stesso valore di r per GRPO
+  lora_dropout: 0.0  # Zero dropout per GRPO
   bias: "none"
   use_gradient_checkpointing: "unsloth"
   random_state: 42
 
-# --- Configurazione Grid Search ---
-grid_search:
-  num_trials: 0 # Numero di combinazioni di hyperparameters da provare
-  learning_rate_min: 0.000000002
-  learning_rate_max: 0.0000001
-  learning_rate_log: true # Ricerca in scala logaritmica
-  per_device_train_batch_size_options: [2, 4] # Opzioni discrete
-  r_options: [8, 16] # Opzioni discrete per LoRA r
-  lora_alpha_options: [8, 16] # Opzioni discrete per LoRA alpha
-  lora_dropout: [0.0, 0.05, 0.1]
+# --- Configurazione GRPO ---
+grpo:
+  learning_rate: 0.000005  # Learning rate specifico per GRPO (più basso)
+  adam_beta1: 0.9
+  adam_beta2: 0.99
+  weight_decay: 0.1
+  warmup_ratio: 0.1
+  lr_scheduler_type: "cosine"
+  optim: "paged_adamw_8bit"  # Ottimizzatore specifico per GRPO
+  logging_steps: 1
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 4  # Aumentato per compensare batch size piccolo
+  num_generations: 2  # Numero di generazioni per step GRPO
+  max_prompt_length: 3000   # Lunghezza massima del prompt
+  max_steps: 1000  # Numero di step per training GRPO
+  save_steps: 20  # Salva ogni 50 step
+  max_grad_norm: 0.1  # Gradient clipping per stabilità
+  report_to: "none"  # Puoi cambiare a "wandb" se usi Weights & Biases
 
-# --- MISTRAL Prompt Template (può essere un'unica stringa YAML multiline) ---
-
+# --- MISTRAL Prompt Template Tokens ---
 START_INSTRUCTION_TOKEN: "[INST]"
 END_INSTRUCTION_TOKEN: "[/INST]"
 START_REASONING_TOKEN: "<reasoning>"
 END_REASONING_TOKEN: "</reasoning>"
 START_REASONING_ANSWER_TOKEN: "<answer>"
-START_REASONING_ANSWER_TOKEN: "</answer>"
-EOS_TOKEN: </s>
+END_REASONING_ANSWER_TOKEN: "</answer>"
+EOS_TOKEN: "</s>"
 
 ##############
+
+# --- ENTITY KEYS FOR REWARD FUNCTION ---
+valid_entity_keys:
+  TENDER:
+    - "TenderType"
+    - "TenderYear" 
+    - "TenderNumber"
+    - "TenderCode"
+    - "TenderPerson"
+    - "TenderOrg"
+    - "TenderTel"
+    - "TenderFax"
+    - "TenderDeadline"
+  
+  ORDER:
+    - "OrderID"
+    - "OrderCompanyName"
+    - "OrderCompanyAddress"
+    - "OrderTaxNumber"
+    - "OrderDate"
+    - "OrderPerson"
+    - "TenderCompanyName"
+    - "TenderCompanyAddress"
+    - "TenderTaxNumber"
+  
+  BID:
+    - BidId
+    - BidCompanyName
+    - BidCompanyAddress
+    - BidTaxNumber
+    - BidOrderDate
+    - TenderCompanyName
+    - TenderCompanyAddress
+
+### PROMPTS ###
 
 TENDER_PROMPT: >
  <SCENARIO>
@@ -376,3 +382,4 @@ BID_PROMPT: >
       {"TenderCompanyAddress": "oblakova ulica 5 3000 celje"}
     ]
   </EXAMPLES>
+
