@@ -1,6 +1,6 @@
 .env
 .venv/
-data/*
+data/
 unsloth_compiled_cache/
 models*/
 fine_tuned_mistral_ner_model*/

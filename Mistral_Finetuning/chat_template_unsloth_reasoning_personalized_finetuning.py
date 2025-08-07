@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import os
 from unsloth import FastLanguageModel
 from trl import GRPOConfig, GRPOTrainer
-from datasets import load_dataset
+from datasets import Dataset
 from huggingface_hub import login
 from json_repair import repair_json
 
@@ -39,7 +39,9 @@ except yaml.YAMLError as e:
 
 # --- Extract configurations ---
 DATASET_PATH = config["dataset_path"]
+TEST_DATASET_PATH = config['output_test_file_path']
 MODEL_CHECKPOINT_DIR = config["model_checkpoint_dir"]
+
 
 MODEL_NAME = config["model"]["name"]
 MAX_SEQ_LENGTH = config["model"]["max_seq_length"]
@@ -121,37 +123,37 @@ def get_document_type_from_id(document_id: str) -> str:
     return "TENDER"
 
 # --- GRPO Dataset Preparation ---
-def format_ner_example_for_grpo(example):
-    """Format example for GRPO training"""
+def format_ner_example_for_grpo(example: dict) -> dict:
     input_text = example["text"]
     chunk_id = example["chunk_id"]
     document_id = example["id"]
 
-    cleaned_ner_list = []
-    for entity_dict in example["ner"]:
-        cleaned_entity_dict = {k: v for k, v in entity_dict.items() if v is not None}
-        if cleaned_entity_dict:
-            cleaned_ner_list.append(cleaned_entity_dict)
+    raw_entities = example.get("ner", "[]")
 
-    if "BID" in document_id:
-        current_prompt_content = BID_PROMPT
-    elif "TENDER" in document_id:
-        current_prompt_content = TENDER_PROMPT
-    elif "ORDER" in document_id:
-        current_prompt_content = ORDER_PROMPT
-    else:
-        current_prompt_content = TENDER_PROMPT
+    def _select_prompt(doc_id: str) -> str:
+        if "BID" in doc_id:
+            return BID_PROMPT
+        elif "TENDER" in doc_id:
+            return TENDER_PROMPT
+        elif "ORDER" in doc_id:
+            return ORDER_PROMPT
+        else:
+            raise ValueError(f"Unknown document type in ID: {doc_id}")
 
-    messages = [
-        {"role": "user", "content": f"{current_prompt_content}\nUser Input:\nchunk_id: {chunk_id}\n{input_text}\nOutput:\n"}
-    ]
-    
+    prompt_template = _select_prompt(document_id)
+    user_prompt = (
+        f"{prompt_template}\n"
+        f"User Input:\n"
+        f"chunk_id: {chunk_id}\n"
+        f"{input_text}\n"
+        f"Output:\n"
+    )
+
     return {
-        "prompt": messages,
-        "answer": cleaned_ner_list,
+        "prompt": [{"role": "user", "content": user_prompt}],
+        "answer": json.dumps(raw_entities, separators=(',', ':'), ensure_ascii=False),
         "document_id": document_id,
         "chunk_id": chunk_id,
-        "raw_text": input_text
     }
 
 # --- Funzione per l'estrazione JSON con riparazione ---
@@ -366,23 +368,42 @@ def anti_hallucination_reward_func(prompts, completions, **kwargs) -> list[float
 
 
 # --- Load and prepare dataset ---
-try:
-    dataset = load_dataset("json", data_files=DATASET_PATH, split="train")
-    print(f"Dataset loaded from: {DATASET_PATH}")
-except Exception as e:
-    print(f"Error loading dataset from {DATASET_PATH}: {e}")
-    exit()
+def load_and_keep_ner_as_string(path):
+    with open(path, "r", encoding="utf-8") as f:
+        data = []
+        for line in f:
+            example = json.loads(line)
+            if isinstance(example.get("ner"), list):
+                example["ner"] = json.dumps(example["ner"], ensure_ascii=False)
+            data.append(example)
+    return data
 
-# Split dataset
-train_split = dataset.train_test_split(test_size=0.1, seed=PEFT_CONFIG["random_state"])
-train_dataset = train_split["train"]
+def save_jsonl(data, path):
+    with open(path, "w", encoding="utf-8") as f:
+        for item in data:
+            f.write(json.dumps(item, ensure_ascii=False) + "\n")
 
-print(f"Training Dataset size: {len(train_dataset)} examples")
+# --- Load dataset ---
+dataset = load_and_keep_ner_as_string(DATASET_PATH)
+dataset = Dataset.from_list(dataset)
 
-# Format dataset for GRPO
+# --- Split ---
+split_dataset = dataset.train_test_split(test_size=0.1, seed=PEFT_CONFIG["random_state"])
+train_dataset = split_dataset["train"]
+test_dataset = split_dataset["test"]
+
+print(f"Training Dataset size: {len(train_dataset)}")
+print(f"Test Dataset size: {len(test_dataset)}")
+
+# --- Process train dataset ---
 processed_train_dataset = train_dataset.map(format_ner_example_for_grpo, batched=False)
 
-# --- GRPO Training Configuration ---
+# --- Process test dataset and save to jsonl ---
+processed_test_dataset = test_dataset.map(format_ner_example_for_grpo, batched=False)
+save_jsonl(processed_test_dataset, TEST_DATASET_PATH)
+
+# --- GRPO Training Configuration e Trainer inizializzazione (come da tuo codice) ---
+
 training_args = GRPOConfig(
     learning_rate = GRPO_CONFIG["learning_rate"],
     adam_beta1 = GRPO_CONFIG["adam_beta1"],
@@ -402,77 +423,29 @@ training_args = GRPOConfig(
     max_grad_norm = GRPO_CONFIG["max_grad_norm"],
     report_to = GRPO_CONFIG["report_to"],
     output_dir = MODEL_CHECKPOINT_DIR,
-)
+    )
 
-# --- Initialize GRPO Trainer ---
 trainer = GRPOTrainer(
-    model = model,
-    processing_class = tokenizer,
-    reward_funcs = [
+    model=model,
+    processing_class=tokenizer,
+    reward_funcs=[
         json_format_reward_func,
         entity_type_reward_func,
         response_length_reward_func,
         entity_correctness_reward_func,
         anti_hallucination_reward_func
     ],
-    args = training_args,
-    train_dataset = processed_train_dataset,
+    args=training_args,
+    train_dataset=processed_train_dataset,
     answers=processed_train_dataset["answer"],
     document_ids=processed_train_dataset["document_id"],
     valid_entity_keys_config=VALID_ENTITY_KEYS_CONFIG,
 )
 
-# --- Start Training ---
 print("\nStarting GRPO training...")
-print("Note: You might see 0 rewards for the first 100+ steps. This is normal!")
 trainer.train()
 
-# --- Save Model ---
-print(f"\nTraining completed. Saving GRPO fine-tuned model to: {MODEL_CHECKPOINT_DIR}")
+print(f"\nTraining completed. Saving model to: {MODEL_CHECKPOINT_DIR}")
 model.save_lora(f"{MODEL_CHECKPOINT_DIR}/grpo_lora")
 
 print("GRPO training finished successfully!")
-
-
-
-# --- TEST MODEL ---
-
-from vllm import SamplingParams
-
-print("\n" + "="*50)
-print("TESTING THE TRAINED MODEL")
-print("="*50)
-
-test_text = tokenizer.apply_chat_template([
-    {"role": "user", "content": f"{TENDER_PROMPT}\nUser Input:\nchunk_id: 0\npostopek 165 2023 da/sp povabilo k oddaji ponudbe narocnik vabi ponudnike da v skladu z navodili ponudnikom izdelajo ponudbo za popravilo centrifuge heraeus cryofuge 6000 naziv aparata centrifuga proizvajalec heraeus tip cryofuge 6000 inv.st. kljuke za oddelcne lekarne do najkasneje 28.04.2023 do 12 ure. vodja nabavne sluzbe matjaz stinek.) univ.dipl.ekon\nOutput:\n"}
-], tokenize = False, add_generation_prompt = True)
-
-try:
-    
-    sampling_params = SamplingParams(
-        temperature = 0.3,
-        top_p = 0.95,
-        max_tokens = 512,
-    )
-
-    print("Testing without LoRA:")
-    output_base = model.fast_generate(
-        [test_text],
-        sampling_params = sampling_params,
-        lora_request = None,
-    )[0].outputs[0].text
-    print(output_base)
-
-    print("\nTesting with GRPO-trained LoRA:")
-    output_grpo = model.fast_generate(
-        [test_text],
-        sampling_params = sampling_params,
-        lora_request = model.load_lora(f"{MODEL_CHECKPOINT_DIR}/grpo_lora"),
-    )[0].outputs[0].text
-    print(output_grpo)
-except ImportError:
-    print("vllm not installed, skipping fast generation test.")
-except FileNotFoundError:
-    print(f"LoRA adapter not found at {MODEL_CHECKPOINT_DIR}/grpo_lora. Skipping test.")
-except Exception as e:
-    print(f"An error occurred during the test: {e}")
