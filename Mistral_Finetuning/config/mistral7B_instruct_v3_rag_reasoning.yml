@@ -1,0 +1,207 @@
+# --- Configurazione Generale ---
+
+dataset_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_tender_rag_ner_dataset.jsonl"
+output_test_file_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_tender_rag_ner_test_split.jsonl"
+
+model_checkpoint_dir: "/home/tiziano/langgraph_agents/Mistral_Finetuning/models/rag"
+
+model_test_dir: /home/tiziano/langgraph_agents/Mistral_Finetuning/models/rag/checkpoint-300
+
+# --- Configurazione Inferenza ---
+inference:
+  output_results_file: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/tender_rag_inference_results_rag_grpo_v1.0.jsonl"
+  generation_params:
+    temperature: 0.05
+    max_new_tokens: 400
+    top_p: 0.2
+    top_k: 8
+    do_sample: true
+    repetition_penalty: 1.11
+
+# --- Configurazione Modello ---
+model:
+  name: "mistralai/Mistral-7B-Instruct-v0.3"
+  max_seq_length: 3256
+  load_in_4bit: false  # Cambiato a true per GRPO (consigliato)
+  dtype: "bfloat16"
+
+# --- Configurazione PEFT/LoRA ---
+peft:
+  r: 32  # Aumentato per GRPO (suggerito 32 dal notebook)
+  target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+  lora_alpha: 32  # Stesso valore di r per GRPO
+  lora_dropout: 0.0  # Zero dropout per GRPO
+  bias: "none"
+  use_gradient_checkpointing: "unsloth"
+  random_state: 42
+
+# --- Configurazione GRPO ---
+grpo:
+  learning_rate: 0.000005  # Learning rate specifico per GRPO (più basso)
+  adam_beta1: 0.9
+  adam_beta2: 0.99
+  weight_decay: 0.1
+  warmup_ratio: 0.1
+  lr_scheduler_type: "cosine"
+  optim: "paged_adamw_8bit"  # Ottimizzatore specifico per GRPO
+  logging_steps: 1
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 4  # Aumentato per compensare batch size piccolo
+  num_generations: 2  # Numero di generazioni per step GRPO
+  max_prompt_length: 3000   # Lunghezza massima del prompt
+  max_steps: 1000  # Numero di step per training GRPO
+  save_steps: 20  # Salva ogni 50 step
+  max_grad_norm: 0.1  # Gradient clipping per stabilità
+  report_to: "none"  # Puoi cambiare a "wandb" se usi Weights & Biases
+
+# --- MISTRAL Prompt Template Tokens ---
+START_INSTRUCTION_TOKEN: "[INST]"
+END_INSTRUCTION_TOKEN: "[/INST]"
+START_REASONING_TOKEN: "<reasoning>"
+END_REASONING_TOKEN: "</reasoning>"
+START_REASONING_ANSWER_TOKEN: "<answer>"
+END_REASONING_ANSWER_TOKEN: "</answer>"
+EOS_TOKEN: "</s>"
+
+##############
+
+# --- ENTITY KEYS FOR REWARD FUNCTION ---
+valid_entity_keys:
+  TENDER:
+    - "TenderType"
+    - "TenderYear" 
+    - "TenderNumber"
+    - "TenderCode"
+    - "TenderPerson"
+    - "TenderOrg"
+    - "TenderTel"
+    - "TenderFax"
+    - "TenderDeadline"
+  
+  ORDER:
+    - "OrderID"
+    - "OrderCompanyName"
+    - "OrderCompanyAddress"
+    - "OrderTaxNumber"
+    - "OrderDate"
+    - "OrderPerson"
+    - "TenderCompanyName"
+    - "TenderCompanyAddress"
+    - "TenderTaxNumber"
+  
+  BID:
+    - BidId
+    - BidCompanyName
+    - BidCompanyAddress
+    - BidTaxNumber
+    - BidOrderDate
+    - TenderCompanyName
+    - TenderCompanyAddress
+
+### PROMPTS ###
+
+
+TENDER_PROMPT: >
+ <SCENARIO>
+  You are an NER agent for Slovenian tender documents (noisy, OCR-derived text).
+  Output a JSON array per the schema.
+  </SCENARIO>
+  <RULES>
+  - Skip missing entities
+  - Not invent Additional entities, follow the schema.
+  - Avoid repetitive occurrences.
+  - Adapt values for eventual typical OCR errors.
+  - Return a list of sigle key-value objects.
+  </RULES>
+  <SCHEMA>
+  TENDER ID Fields (usually contiguous):
+  - TenderType: (n=non-medical, m=medical, x=services). Infer if missing from goods/services in chunk; ignore if none. 'm'/'x' often require inference.
+  - TenderYear: four-digit year
+  - TenderNumber: string int between 000 and 999
+  - TenderCode: code in the format 'aa/bb' or 'aaa/bb' or only 'aa', regex: ^[a-z]{2,3}(/[a-z]{2})?$ 
+
+  TENDER Fields:
+  - TenderPerson: name like "firstname lastname", may appear "firstname.lastnameOtherWords" (correct dots/irregularities)
+  - TenderOrg: free-text organization name, preserve OCR text
+  - TenderTel, TenderFax: phone numbers, format as examples (e.g. "(03) 42 33 000").
+  - TenderDeadline: date in format dd.mm.yyyy
+  </SCHEMA>
+  <FORMAT>
+  Output Format: List[Dict[str, str]] or empty list.
+  Return:
+  [] if no relevant entity is found
+  Otherwise, a list of dictionaries as follows:
+  [ ...
+  { "TenderNumber": "309" },
+  { "TenderDeadline":"28.04.2023" },
+  ...
+  ]
+  </FORMAT>
+
+ORDER_PROMPT: >
+  <SCENARIO>
+  You are an NER agent for Slovenian order documents (noisy, OCR-derived text).
+  Output a JSON array per the schema.
+  </SCENARIO>
+  <RULES>
+  - Skip missing entities
+  - Not invent Additional entities, follow the schema.
+  - Avoid repetitive occurrences.
+  - Adapt values for eventual typical OCR errors.
+  - Return a list of sigle key-value objects.
+  </RULES>
+  <SCHEMA>
+  Order Fields:
+  - OrderID: no static format, usually a sequence of chars and numbers, see examples.
+  - OrderCompanyName: free-text bidder organization name.
+  - OrderCompanyAddress: free-text address block (retain structure; normalize special characters).
+  - OrderTaxNumber: tax ID, two digits "si" (or injected "$") (e.g. "si 70365016"), note: OCR introduce '$' instead of 'si' ex si41365016 -> $41365016.
+  - OrderDate: date format gg.mm.aaaa
+  - OrderPerson: free-text person name.
+  </SCHEMA>
+  <FORMAT>
+  Output Format: List[Dict[str, str]] or empty list.
+  Return:
+  [] if no relevant entity is found
+  Otherwise, a list of dictionaries as follows:
+  [
+  { "OrderID": "..." },
+  { "OrderCompanyName":"..." },
+  ...
+  ]
+  </FORMAT>
+
+BID_PROMPT: >
+  <SCENARIO>
+  You are an NER agent for Slovenian bid documents (noisy, OCR-derived text).
+  Output a JSON array per the schema.
+  </SCENARIO>
+  <RULES>
+  - Skip missing entities
+  - Not invent Additional entities, follow the schema.
+  - Avoid repetitive occurrences.
+  - Adapt values for eventual typical OCR errors.
+  - Return a list of sigle key-value objects.
+  </RULES>
+  <SCHEMA>
+  BID Fields:
+  - BidId: no static format, usually a sequence of chars and numbers, see examples.
+  - BidCompanyName: free-text organization name of the bidder.
+  - BidCompanyAddress: free-text address block (retain structure; normalize special characters).
+  - BidTaxNumber: tax ID, two digits "si" (or injected "$") (e.g. "si 70365016"), note: OCR introduce '$' instead of 'si' ex si41365016 -> $41365016.
+  - BidOrderDate: date format gg.mm.aaaa
+  - TenderCompanyName: free-text organization name of the bidder.
+  - TenderCompanyAddress: free-text address block
+  </SCHEMA>
+  <FORMAT>
+  Output Format: List[Dict[str, str]] or empty list.
+  Return:
+  [] if no relevant entity is found
+  Otherwise, a list of dictionaries as follows:
+  [
+  { "BidID": "..." },
+  { "BidCompanyName":"..." },
+  ...
+  ]
+  </FORMAT>
+

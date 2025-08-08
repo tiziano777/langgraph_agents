@@ -1,15 +1,14 @@
 # --- Configurazione Generale ---
 
 dataset_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_tender_ner_dataset.jsonl"
-output_test_file_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_tender_ner_test_split.jsonl"
-
 model_checkpoint_dir: "/home/tiziano/langgraph_agents/Mistral_Finetuning/models"
 
-model_test_dir: /home/tiziano/langgraph_agents/Mistral_Finetuning/models/checkpoint-300
+output_test_file_path: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/gemini_tender_ner_test_split.jsonl"
+model_test_dir: /home/tiziano/langgraph_agents/Mistral_Finetuning/models/checkpoint-500
 
 # --- Configurazione Inferenza ---
 inference:
-  output_results_file: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/tender_inference_results_grpo_v1.0.jsonl"
+  output_results_file: "/home/tiziano/langgraph_agents/Mistral_Finetuning/data/tender_inference_results_grpo_ck500.jsonl"
   generation_params:
     temperature: 0.05
     max_new_tokens: 400

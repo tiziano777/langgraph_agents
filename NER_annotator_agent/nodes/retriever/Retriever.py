@@ -1,5 +1,5 @@
 import json
-import os
+import yaml
 from typing import List, Dict, Any
 
 from sentence_transformers import SentenceTransformer, util
@@ -17,13 +17,21 @@ class Retriever:
         Args:
             model_name (str): Nome del modello di Sentence Transformer da utilizzare.
         """
+        
         self.model = SentenceTransformer(model_name)
+        
+        ### LOAD PROMPTS ###
+        self.prompts_path = "/home/tiziano/langgraph_agents/NER_annotator_agent/prompt/rag_prompt.yml"
+        self.current_prompt=""
+        with open(self.prompts_path, "r", encoding="utf-8") as f:
+            self.prompts = yaml.safe_load(f)
+        
         # Dizionario per memorizzare i percorsi dei file
         self.file_pool = {
             "BID": "/home/tiziano/langgraph_agents/NER_annotator_agent/data/output/bid_rag_db.json",
-            "TENDER_0": "/home/tiziano/langgraph_agents/NER_annotator_agent/data/output/TENDER0_rag_db.json",
-            "TENDER_1": "/home/tiziano/langgraph_agents/NER_annotator_agent/data/output/TENDER1_rag_db.json",
-            "ORDER": "/home/tiziano/langgraph_agents/NER_annotator_agent/data/output/ORDER_rag_db.json"
+            "TENDER_0": "/home/tiziano/langgraph_agents/NER_annotator_agent/data/output/tender0_rag_db.json",
+            "TENDER_1": "/home/tiziano/langgraph_agents/NER_annotator_agent/data/output/tender1_rag_db.json",
+            "ORDER": "/home/tiziano/langgraph_agents/NER_annotator_agent/data/output/order_rag_db.json"
         }
         # Cache per gli embedding pre-calcolati per evitare letture multiple
         self._document_cache = {}
@@ -31,6 +39,7 @@ class Retriever:
     def _document_routing(self, state: Dict[str, Any]) -> str:
         """
         Seleziona il file JSON corretto in base all'ID e al chunk_id nello stato.
+        Salva anache il prompt realtico al tipo di file in esame.
         
         Args:
             state (Dict[str, Any]): Lo stato passato dal LangGraph.
@@ -41,10 +50,11 @@ class Retriever:
         Raises:
             ValueError: Se l'ID o il chunk_id non sono validi.
         """
-        doc_id = state.get("id", "").upper()
-        chunk_id = state.get("chunk_id")
+        doc_id = state.id.upper()
+        chunk_id = state.chunk_id
         
         if "TENDER" in doc_id:
+            self.current_prompt=self.prompts['TENDER_PROMPT']
             if chunk_id == "0":
                 return self.file_pool["TENDER_0"]
             elif chunk_id == "1":
@@ -52,8 +62,10 @@ class Retriever:
             else:
                 raise ValueError("Chunk_id non valido per TENDER.")
         elif "BID" in doc_id:
+            self.current_prompt=self.prompts['BID_PROMPT']
             return self.file_pool["BID"]
         elif "ORDER" in doc_id:
+            self.current_prompt=self.prompts['ORDER_PROMPT']
             return self.file_pool["ORDER"]
         else:
             raise ValueError("ID documento non valido per il routing.")
@@ -91,7 +103,7 @@ class Retriever:
         Returns:
             Dict[str, Any]: Lo stato aggiornato con l'esempio 1-shot.
         """
-        input_text = state["text"]
+        input_text = state.text
         
         # 1. Routing del documento
         file_path = self._document_routing(state)
@@ -116,12 +128,14 @@ class Retriever:
 
         if best_match:
             # 5. Creazione dell'esempio 1-shot
-            one_shot_example = f"<EXAMPLES>\nExample 1:\input:\n{best_match["text"]}\nOutput\n{str(best_match["ner"])}</EXAMPLES>"
+            input_text = best_match["text"]
+            ner = str(best_match["ner"])
             
-            state["one_shot_example"] = one_shot_example
-            print(f"Esempio 1-shot recuperato con similarità: {max_similarity:.4f}")
+            one_shot_example = f"{self.current_prompt}\n<EXAMPLE>\nExample, similarity {str(round(max_similarity,2))}:\nInput:\n{input_text}\nOutput\n{ner}\n</EXAMPLE>\nUser Input:\n{state.text}\nOutput:\n"
+            state.one_shot_example = one_shot_example
+            
         else:
-            state["one_shot_example"] = None
+            state.one_shot_example = None
             print("Nessun esempio trovato.")
             
         return state

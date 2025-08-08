@@ -71,6 +71,7 @@ class Preprocessor():
             ### CUSTOM LOGIC ###
             # Pulizia input OCR da sequenze anomale
             text = re.sub(r"\n+", " ", text)
+            text = re.sub(r"\.{2,}", " ", text)
             text = re.sub(r" en ", " ", text)
             text = text.replace("\t", " ")
             text = text.replace("\f", " ")
