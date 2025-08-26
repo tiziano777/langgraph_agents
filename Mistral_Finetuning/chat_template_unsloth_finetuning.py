@@ -8,7 +8,7 @@ from trl import SFTTrainer
 from transformers import TrainingArguments
 from scripts.training_callback import GenerationCallback
 from datasets import load_dataset
-from huggingface_hub import login
+#from huggingface_hub import login
 
 # --- CUDA ---
 print(f"Torch version: {torch.__version__}")

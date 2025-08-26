@@ -77,7 +77,6 @@ valid_entity_keys:
     - "TenderTel"
     - "TenderFax"
     - "TenderDeadline"
-  
   ORDER:
     - "OrderID"
     - "OrderCompanyName"
@@ -88,7 +87,6 @@ valid_entity_keys:
     - "TenderCompanyName"
     - "TenderCompanyAddress"
     - "TenderTaxNumber"
-  
   BID:
     - BidId
     - BidCompanyName

@@ -70,7 +70,7 @@ Configuration
 
 ```bash
 HF_TOKEN="your_huggingface_token_here"
-MODEL_PATH="/home/tiziano/langgraph_agents/NER_annotator_agent/local_llm/fine_tuned_mistral_ner_model_v1.3"
+MODEL_PATH="langgraph_agents/NER_annotator_agent/local_llm/fine_tuned_mistral_ner_model_v1.3"
 ```
 
 ### config/ Directory
@@ -82,9 +82,9 @@ Ensure your virtual environment is active:
 
 ```bash
 source .venv/bin/activate
-Run the example pipeline:
+
 ```
-and run:
+Run the example pipeline:
 
 ```bash
 python main.py
